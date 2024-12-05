@@ -1,0 +1,13 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <MBDD_RangedDeepDrill.label>廣域深鑽井</MBDD_RangedDeepDrill.label>
+  <MBDD_RangedDeepDrill.description>一種大範圍的深鑽井，可以開採整張地圖上的所有資源。\n需要先使用地質掃描儀來勘探地下資源。即使地下沒有資源了，也能源源不斷地挖出石塊。</MBDD_RangedDeepDrill.description>
+  
+  <MBDD_LargeDeepDrill.label>大型深鑽井</MBDD_LargeDeepDrill.label>
+  <MBDD_LargeDeepDrill.description>廣域深鑽井的大型版本，在全圖開採的基礎上允許至多12個殖民者同時操作。\n需要先使用地質掃描儀來勘探地下資源。即使地下沒有資源了，也能源源不斷地挖出石塊。</MBDD_LargeDeepDrill.description>
+
+  <MBDD_ArchotechDeepDrill.label>超凡深鑽井</MBDD_ArchotechDeepDrill.label>
+  <MBDD_ArchotechDeepDrill.description>超凡智能創造的深鑽井，可以從虛空中開採指定資源。</MBDD_ArchotechDeepDrill.description>
+
+</LanguageData>

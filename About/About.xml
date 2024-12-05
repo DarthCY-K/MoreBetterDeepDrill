@@ -7,6 +7,14 @@
 	<supportedVersions>
 		<li>1.5</li>
 	</supportedVersions>
-	<description>.</description>
+	<description>
+	Add 3 types of DeepDrill into the game.
+
+	Ranged deep drill: mine all the resources on the map.
+
+	Large deep drill: bigger version of ranged deep drill, allowing up to 12 colonists to operate at meantime.
+	
+	Archotech deep drill: can drill specified resources from the void, without restrict of map.
+	</description>
 	
 </ModMetaData>
