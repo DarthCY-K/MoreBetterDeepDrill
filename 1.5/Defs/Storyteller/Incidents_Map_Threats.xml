@@ -1,0 +1,23 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <IncidentDef>
+    <defName>MBDD_Infestation</defName>
+    <label>deep drill infestation</label>
+    <targetTags>
+      <li>Map_PlayerHome</li>
+      <li>Map_TempIncident</li>
+      <li>Map_Misc</li>
+      <li>Map_RaidBeacon</li>
+    </targetTags>
+    <workerClass>MoreBetterDeepDrill.Incident.MBDD_IncidentWorker_Infestation</workerClass>
+    <letterLabel>Too deep: Infestation</letterLabel>
+    <letterText>Vibrations from your deep drills have angered some underground insects. Now they're tunneling upwards to seek revenge!\n\nBeware - the insects have been angered and will try to destroy your base.</letterText>
+    <letterDef>ThreatBig</letterDef>
+    <baseChance>1</baseChance>
+    <category>DeepDrillInfestation</category>
+    <pointsScaleable>true</pointsScaleable>
+    <tale>Infestation</tale>
+  </IncidentDef>
+
+</Defs>

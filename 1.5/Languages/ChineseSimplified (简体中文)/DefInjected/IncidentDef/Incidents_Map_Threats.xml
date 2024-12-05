@@ -1,0 +1,8 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <MBDD_Infestation.label>钻井虫灾</MBDD_Infestation.label>
+  <MBDD_Infestation.letterLabel>过深：虫灾</MBDD_Infestation.letterLabel>
+  <MBDD_Infestation.letterText>你的深钻井不小心打通了一个满是虫族的洞穴，现在它们会对操作深钻井的殖民者进行报复！\n\n当心——这些虫族被激怒了，它们会试图摧毁你的基地。</MBDD_Infestation.letterText>
+  
+</LanguageData>

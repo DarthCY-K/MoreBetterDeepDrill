@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+  
+  <!--============= Misc ===============-->
+
+  <JobDef>
+    <defName>MBDD_SingleOperateDeepDrill</defName>
+    <driverClass>MoreBetterDeepDrill.Jobs.MBDD_JobDriver_SingleOperateDeepDrill</driverClass>
+    <reportString>drilling at TargetA.</reportString>
+    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+  </JobDef>
+
+  <JobDef>
+    <defName>MBDD_MultiOperateDeepDrill</defName>
+    <driverClass>MoreBetterDeepDrill.Jobs.MBDD_JobDriver_MultiOperateDeepDrill</driverClass>
+    <reportString>drilling at TargetA.</reportString>
+    <allowOpportunisticPrefix>true</allowOpportunisticPrefix>
+  </JobDef>
+
+</Defs>
