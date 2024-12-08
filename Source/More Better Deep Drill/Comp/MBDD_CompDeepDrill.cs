@@ -46,15 +46,24 @@ namespace MoreBetterDeepDrill.Comp
 
         protected List<Pawn> drillers = new List<Pawn>();
 
+        public bool canDrillNow;
+
         public override void CompTick()
         {
-            if (CanDrillNow())
+            if (canDrillNow)
             {
                 base.CompTick();
 
                 if (drillers.Count > 0)
                     DrillWork();
             }
+        }
+
+        public override void CompTickRare()
+        {
+            base.CompTickRare();
+
+            UpdateCanDrillState();
         }
 
         public override void PostSpawnSetup(bool respawningAfterLoad)
@@ -125,10 +134,10 @@ namespace MoreBetterDeepDrill.Comp
         protected virtual void TryProducePortion(float yieldPct, Pawn driller = null)
         { }
 
-        public virtual bool CanDrillNow()
-        {
-            return true;
-        }
+        /// <summary>
+        /// 更新可挖掘状态
+        /// </summary>
+        protected virtual void UpdateCanDrillState(){ }
 
         public virtual bool UsedLastTick()
         {

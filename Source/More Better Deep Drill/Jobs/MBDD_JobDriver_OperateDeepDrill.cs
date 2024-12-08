@@ -18,7 +18,7 @@ namespace MoreBetterDeepDrill.Jobs
             this.FailOnDespawnedNullOrForbidden(TargetIndex.A);
             this.FailOnBurningImmobile(TargetIndex.A);
             this.FailOnThingHavingDesignation(TargetIndex.A, DesignationDefOf.Uninstall);
-            this.FailOn(() => !job.targetA.Thing.TryGetComp<Comp.MBDD_CompDeepDrill>().CanDrillNow());
+            this.FailOn(() => !job.targetA.Thing.TryGetComp<Comp.MBDD_CompDeepDrill>().canDrillNow);
             yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.InteractionCell);
             Toil work = ToilMaker.MakeToil("MakeNewToils");
             work.tickAction = delegate

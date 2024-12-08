@@ -63,19 +63,23 @@ namespace MoreBetterDeepDrill.Comp
             return Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell);
         }
 
-        public override bool CanDrillNow()
+        protected override void UpdateCanDrillState()
         {
-            if (powerComp != null && !powerComp.PowerOn)
+            if(powerComp != null && powerComp.PowerOn)
             {
-                return false;
+                if (Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null)
+                {
+                    canDrillNow = true;
+                }
+                else
+                {
+                    canDrillNow = ValuableResourcesPresent();
+                }
             }
-
-            if (Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null)
+            else
             {
-                return true;
+                canDrillNow = false;
             }
-
-            return ValuableResourcesPresent();
         }
 
         public bool ValuableResourcesPresent()

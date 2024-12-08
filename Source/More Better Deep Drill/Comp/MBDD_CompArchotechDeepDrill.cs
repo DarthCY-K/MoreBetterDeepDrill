@@ -35,15 +35,15 @@ namespace MoreBetterDeepDrill.Comp
             }
         }
 
-        public override bool CanDrillNow()
+        protected override void UpdateCanDrillState()
         {
-            if (selectedOre == null)
-                return false;
-
             if (powerComp != null && !powerComp.PowerOn)
-                return false;
-
-            return true;
+                canDrillNow = false;
+            else if (selectedOre == null)
+                canDrillNow = false;
+            else
+                canDrillNow = true;
+            
         }
 
         public override IEnumerable<Gizmo> CompGetGizmosExtra()

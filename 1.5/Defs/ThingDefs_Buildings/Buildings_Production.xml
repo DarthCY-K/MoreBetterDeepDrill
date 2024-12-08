@@ -28,7 +28,6 @@
       <li>BuildingsProduction</li>
     </thingCategories>
     <placeWorkers>
-      <li>PlaceWorker_DeepDrill</li>
       <li>PlaceWorker_PreventInteractionSpotOverlap</li>
     </placeWorkers>
     <drawPlaceWorkersWhileSelected>true</drawPlaceWorkersWhileSelected>

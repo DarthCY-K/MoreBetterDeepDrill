@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using static UnityEngine.GraphicsBuffer;
 
 namespace MoreBetterDeepDrill.Utils
 {
@@ -43,6 +44,59 @@ namespace MoreBetterDeepDrill.Utils
                 if (oreDict[i] == null)
                 {
                     oreDict.Remove(oreDict[i]);
+                }
+            }
+        }
+
+        /// <summary>
+        /// 追加可挖掘对象
+        /// </summary>
+        /// <param name="defs"></param>
+        public static void AddExtraDrillable(List<ThingDef> defs)
+        {
+            var dumplicate = false;
+            var dict = StaticValues.ModSetting.oreDictionary;
+            ThingDef tempOreDef;
+            List<DrillableOre> newDrillableList = new List<DrillableOre>();
+
+            if (dict != null)
+            {
+                foreach(var target in defs)
+                {
+                    var amount = 1;
+                    dumplicate = false;
+
+                    if (target.building != null)
+                    {
+                        tempOreDef = target.building.mineableThing;
+                        amount = target.building.mineableYield;
+                    }
+                    else
+                    {
+                        tempOreDef = target;
+                    }
+
+                    //检查现在的列表
+                    foreach (var exist in dict)
+                    {
+                        if (exist.OreDef != null && exist.OreDef == tempOreDef)
+                        {
+                            dumplicate = true;
+                            break;
+                        }
+                    }
+
+                    //不重复就添加，重复的话就中止添加
+                    if (!dumplicate)
+                        newDrillableList.Add(new DrillableOre(tempOreDef, amount));
+                    else
+                        continue;
+                }
+
+                //添加新开采物
+                foreach(var newOre in newDrillableList)
+                {
+                    dict.Add(newOre);
                 }
             }
         }
