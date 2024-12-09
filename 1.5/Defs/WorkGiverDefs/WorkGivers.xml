@@ -4,9 +4,39 @@
   <!-- ============= Mining ============= -->
 
   <WorkGiverDef>
-    <defName>MBDD_MoreBetterDeepDrill</defName>
+    <defName>MBDD_OperateRangedDeepDrill</defName>
     <label>drill at deep drill</label>
-    <giverClass>MoreBetterDeepDrill.Jobs.MBDD_WorkGiver_MoreBetterDeepDrill</giverClass>
+    <giverClass>MoreBetterDeepDrill.Jobs.MBDD_WorkGiver_RangedDeepDrill</giverClass>
+    <workType>Mining</workType>
+    <priorityInType>50</priorityInType>
+    <verb>drill</verb>
+    <gerund>drilling</gerund>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+    <canBeDoneByMechs>false</canBeDoneByMechs>
+    <canBeDoneByMutants>false</canBeDoneByMutants>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>MBDD_OperateLargeDeepDrill</defName>
+    <label>drill at deep drill</label>
+    <giverClass>MoreBetterDeepDrill.Jobs.MBDD_WorkGiver_LargeDeepDrill</giverClass>
+    <workType>Mining</workType>
+    <priorityInType>50</priorityInType>
+    <verb>drill</verb>
+    <gerund>drilling</gerund>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+    <canBeDoneByMechs>false</canBeDoneByMechs>
+    <canBeDoneByMutants>false</canBeDoneByMutants>
+  </WorkGiverDef>
+
+  <WorkGiverDef>
+    <defName>MBDD_OperateArchotechDeepDrill</defName>
+    <label>drill at deep drill</label>
+    <giverClass>MoreBetterDeepDrill.Jobs.MBDD_WorkGiver_ArchotechDeepDrill</giverClass>
     <workType>Mining</workType>
     <priorityInType>50</priorityInType>
     <verb>drill</verb>
