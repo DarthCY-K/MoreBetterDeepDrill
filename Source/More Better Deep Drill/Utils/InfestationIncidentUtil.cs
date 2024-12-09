@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using MoreBetterDeepDrill.Comp;
+using RimWorld;
 using System.Collections.Generic;
 using Verse;
 
@@ -16,7 +17,7 @@ namespace MoreBetterDeepDrill.Utils
                 if (list[i].Faction != null && list[i].Faction == Faction.OfPlayer)
                 {
                     bool hasComp = list[i].HasComp<Comp.MBDD_CompCreatesInfestations>();
-                    if (hasComp)
+                    if (hasComp && list[i].TryGetComp<MBDD_CompDeepDrill>().IsDrillingNow)
                         outDrills.Add(list[i]);
                 }
             }

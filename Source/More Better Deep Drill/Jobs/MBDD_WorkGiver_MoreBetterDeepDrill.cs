@@ -53,7 +53,7 @@ namespace MoreBetterDeepDrill.Jobs
                 return false;
             }
 
-            if (!building.TryGetComp<Comp.MBDD_CompDeepDrill>().canDrillNow)
+            if (!building.TryGetComp<Comp.MBDD_CompDeepDrill>().CanDrillNow)
             {
                 return false;
             }

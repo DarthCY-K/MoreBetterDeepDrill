@@ -69,16 +69,16 @@ namespace MoreBetterDeepDrill.Comp
             {
                 if (Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null)
                 {
-                    canDrillNow = true;
+                    CanDrillNow = true;
                 }
                 else
                 {
-                    canDrillNow = ValuableResourcesPresent();
+                    CanDrillNow = ValuableResourcesPresent();
                 }
             }
             else
             {
-                canDrillNow = false;
+                CanDrillNow = false;
             }
         }
 

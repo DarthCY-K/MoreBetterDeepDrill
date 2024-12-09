@@ -46,11 +46,13 @@ namespace MoreBetterDeepDrill.Comp
 
         protected List<Pawn> drillers = new List<Pawn>();
 
-        public bool canDrillNow;
+        public bool CanDrillNow;
+
+        public bool IsDrillingNow => drillers.Count != 0;
 
         public override void CompTick()
         {
-            if (canDrillNow)
+            if (CanDrillNow)
             {
                 base.CompTick();
 

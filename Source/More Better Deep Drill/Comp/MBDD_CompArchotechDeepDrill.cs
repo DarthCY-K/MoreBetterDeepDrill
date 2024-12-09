@@ -38,11 +38,11 @@ namespace MoreBetterDeepDrill.Comp
         protected override void UpdateCanDrillState()
         {
             if (powerComp != null && !powerComp.PowerOn)
-                canDrillNow = false;
+                CanDrillNow = false;
             else if (selectedOre == null)
-                canDrillNow = false;
+                CanDrillNow = false;
             else
-                canDrillNow = true;
+                CanDrillNow = true;
             
         }
 
