@@ -52,6 +52,12 @@ namespace MoreBetterDeepDrill.Comp
 
         public override void CompTick()
         {
+            //每300tick（5s）更新一次状态
+            if (Current.Game.tickManager.TicksGame % 300 == 0)
+            {
+                UpdateCanDrillState();
+            }
+
             if (CanDrillNow)
             {
                 base.CompTick();
@@ -59,13 +65,6 @@ namespace MoreBetterDeepDrill.Comp
                 if (drillers.Count > 0)
                     DrillWork();
             }
-        }
-
-        public override void CompTickRare()
-        {
-            base.CompTickRare();
-
-            UpdateCanDrillState();
         }
 
         public override void PostSpawnSetup(bool respawningAfterLoad)
