@@ -11,7 +11,7 @@ namespace MoreBetterDeepDrill.Settings
     {
         public static MBDD_Settings ModSetting;
 
-        private Vector2 scrollPosition;
+        private Vector2 scrollPosition = Vector2.zero;
 
         private float scrollViewHeight = 0f;
 
@@ -87,23 +87,25 @@ namespace MoreBetterDeepDrill.Settings
                 AddExteraDrillable();
             }
 
-            //滚动条
-            y += 40;
-            Rect outRect = new Rect(0, y, 300f, inRect.height);
-            Rect rectView = new Rect(0, y, outRect.width - 16f, outRect.height);
 
-            Widgets.BeginScrollView(outRect, ref this.scrollPosition, rectView, true);
-            float num = y;
             if (ModSetting.oreDictionary != null && ModSetting.oreDictionary.Count > 0)
             {
+                //滚动条
+                y += 40;
+                Rect outRect = new Rect(0, y, 310f, 300f);
+                Rect rectView = new Rect(0, y, outRect.width - 16f, ModSetting.oreDictionary.Count * 32f);
+
+                Widgets.BeginScrollView(outRect, ref this.scrollPosition, rectView, true);
+                float num = y;
+
                 for (int i = 0; i < ModSetting.oreDictionary.Count; i++)
                 {
                     var ore = ModSetting.oreDictionary;
 
                     Rect rectRow = new Rect(0f, num, rectView.width, 32f);
                     Rect rectOreIcon = GenUI.LeftPartPixels(rectRow, 32f);
-                    Rect rectOreLabel = new Rect(rectRow.x + 35f, rectRow.y + 3f, rectRow.width - 32f, rectRow.height);
-                    Rect rectDeepCountPerPortion = new Rect(rectOreLabel.x + 185f, rectOreLabel.y, 65f, rectOreLabel.height);
+                    Rect rectOreLabel = new Rect(rectRow.x + 35f, rectRow.y + 5f, rectRow.width - 32f, rectRow.height);
+                    Rect rectDeepCountPerPortion = new Rect(rectOreLabel.x + 185f, rectRow.y, 65f, rectRow.height);
 
                     //矿石图标和名称
                     Widgets.ThingIcon(rectOreIcon, ore[i].OreDef, null, null, 1f, null, null);
@@ -122,8 +124,9 @@ namespace MoreBetterDeepDrill.Settings
                     num += 32f;
                     this.scrollViewHeight = num;
                 }
+
+                Widgets.EndScrollView();
             }
-            Widgets.EndScrollView();
         }
     }
 }
