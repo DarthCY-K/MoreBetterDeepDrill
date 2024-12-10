@@ -1,8 +1,16 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
-  <MBDD_MoreBetterDeepDrill.label>鑽探</MBDD_MoreBetterDeepDrill.label>
-  <MBDD_MoreBetterDeepDrill.gerund>鑽探</MBDD_MoreBetterDeepDrill.gerund>
-  <MBDD_MoreBetterDeepDrill.verb>鑽探</MBDD_MoreBetterDeepDrill.verb>
+  <MBDD_OperateRangedDeepDrill.label>鑽探</MBDD_OperateRangedDeepDrill.label>
+  <MBDD_OperateRangedDeepDrill.gerund>鑽探</MBDD_OperateRangedDeepDrill.gerund>
+  <MBDD_OperateRangedDeepDrill.verb>鑽探</MBDD_OperateRangedDeepDrill.verb>
+
+  <MBDD_OperateLargeDeepDrill.label>鑽探</MBDD_OperateLargeDeepDrill.label>
+  <MBDD_OperateLargeDeepDrill.gerund>鑽探</MBDD_OperateLargeDeepDrill.gerund>
+  <MBDD_OperateLargeDeepDrill.verb>鑽探</MBDD_OperateLargeDeepDrill.verb>
+
+  <MBDD_OperateArchotechDeepDrill.label>鑽探</MBDD_OperateArchotechDeepDrill.label>
+  <MBDD_OperateArchotechDeepDrill.gerund>鑽探</MBDD_OperateArchotechDeepDrill.gerund>
+  <MBDD_OperateArchotechDeepDrill.verb>鑽探</MBDD_OperateArchotechDeepDrill.verb>
   
 </LanguageData>

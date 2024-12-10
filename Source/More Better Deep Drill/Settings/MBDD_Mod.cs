@@ -72,6 +72,11 @@ namespace MoreBetterDeepDrill.Settings
             Widgets.Checkbox(0f, y, ref ModSetting.EnableInsectoids, 25f, false, false, null, null);
             Widgets.Label(new Rect(35f, y + 1f, inRect.width - 50f, 25f), "MBDD_Label_EnableInsectoids".Translate());
 
+            //是否启用机械族挖矿
+            y += 40;
+            Widgets.Checkbox(0f, y, ref ModSetting.EnableMechdroids, 25f, false, false, null, null);
+            Widgets.Label(new Rect(35f, y + 1f, inRect.width - 50f, 25f), "MBDD_Label_EnableMechdroids".Translate());
+
             //分区文本
             y += 80;
             Text.Font = GameFont.Medium;

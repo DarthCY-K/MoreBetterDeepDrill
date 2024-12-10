@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using MoreBetterDeepDrill.Utils;
+using RimWorld;
 using System.Collections.Generic;
 using Verse;
 using Verse.AI;
@@ -16,6 +17,10 @@ namespace MoreBetterDeepDrill.Jobs
 
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
         {
+            //机械族过滤
+            if (pawn.IsColonyMech && !StaticValues.ModSetting.EnableMechdroids)
+                return true;
+
             List<Building> allBuildingsColonist = pawn.Map.listerBuildings.allBuildingsColonist;
             for (int i = 0; i < allBuildingsColonist.Count; i++)
             {

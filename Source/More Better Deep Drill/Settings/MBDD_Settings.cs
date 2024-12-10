@@ -11,10 +11,12 @@ namespace MoreBetterDeepDrill.Settings
         public List<ThingDef> database;
 
         public bool EnableInsectoids = true;
+        public bool EnableMechdroids = false;
 
         public override void ExposeData()
         {
             Scribe_Values.Look<bool>(ref this.EnableInsectoids, "MBDD_EnableInsectoids", true, false);
+            Scribe_Values.Look<bool>(ref this.EnableMechdroids, "MBDD_EnableMechdroids", false, false);
             Scribe_Collections.Look<DrillableOre>(ref oreDictionary, "MBDD_OreDictionary", LookMode.Deep, Array.Empty<object>());
 
             CheckVaild(ref oreDictionary);

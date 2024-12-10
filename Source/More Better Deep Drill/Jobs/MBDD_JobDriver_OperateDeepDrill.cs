@@ -26,7 +26,10 @@ namespace MoreBetterDeepDrill.Jobs
                 this.pawn.rotationTracker.FaceCell(GenAdj.OccupiedRect(this.TargetA.Thing).ClosestCellTo(this.pawn.Position));
                 Pawn actor = work.actor;
                 ((Building)actor.CurJob.targetA.Thing).GetComp<Comp.MBDD_CompDeepDrill>().DrillJoinWork(actor);
-                actor.skills.Learn(SkillDefOf.Mining, 0.065f);
+
+                //机械族没有技能，所以不能给他们加经验
+                if(actor.skills != null)
+                    actor.skills.Learn(SkillDefOf.Mining, 0.065f);
             };
             work.AddFinishAction(delegate
             {
