@@ -14,6 +14,25 @@ namespace MoreBetterDeepDrill.Jobs
             return Find.StudyManager.GetStudiableThingsAndPlatforms(pawn.Map);
         }
 
+        public override bool ShouldSkip(Pawn pawn, bool forced = false)
+        {
+            List<Building> allBuildingsColonist = pawn.Map.listerBuildings.allBuildingsColonist;
+            for (int i = 0; i < allBuildingsColonist.Count; i++)
+            {
+                Building building = allBuildingsColonist[i];
+                if (building.def == Defs.ThingDefOf.MBDD_ArchotechDeepDrill)
+                {
+                    CompPowerTrader comp = building.GetComp<CompPowerTrader>();
+                    if ((comp == null || comp.PowerOn) && building.Map.designationManager.DesignationOn(building, DesignationDefOf.Uninstall) == null)
+                    {
+                        return false;
+                    }
+                }
+            }
+
+            return true;
+        }
+
         public override PathEndMode PathEndMode => PathEndMode.InteractionCell;
 
         public override Danger MaxPathDanger(Pawn pawn)
@@ -35,7 +54,7 @@ namespace MoreBetterDeepDrill.Jobs
             if (!pawn.CanReserve(building, 1, -1, null, forced))
                 return false;
 
-            if (!building.TryGetComp<Comp.MBDD_CompDeepDrill>().CanDrillNow)
+            if (!building.TryGetComp<Comp.MBDD_CompArchotechDeepDrill>().CanDrillNow)
                 return false;
 
             if (building.Map.designationManager.DesignationOn(building, DesignationDefOf.Uninstall) != null)

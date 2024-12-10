@@ -93,7 +93,10 @@ namespace MoreBetterDeepDrill.Comp
         {
             if (parent.Spawned && selectedOre != null)
             {
-                return "ResourceBelow".Translate() + ": " + selectedOre.OreDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0");
+                if (DebugSettings.ShowDevGizmos)
+                    return "ResourceBelow".Translate() + ": " + selectedOre.OreDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0") + $"\nPortionYieldPct: {PortionYieldPct}\nDrillPower: {DrillPower}";
+                else
+                    return "ResourceBelow".Translate() + ": " + selectedOre.OreDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0");
             }
 
             return null;
