@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using MoreBetterDeepDrill.Utils;
+using RimWorld;
 using UnityEngine;
 using Verse;
 
@@ -12,29 +13,24 @@ namespace MoreBetterDeepDrill.Comp
             int countPresent;
             IntVec3 cell;
             bool nextResource = GetNextResource(out resDef, out countPresent, out cell);
+
             if (resDef == null)
-            {
                 return;
-            }
-            int num = Mathf.Min(countPresent, resDef.deepCountPerPortion);
+            int num = Mathf.Min(countPresent, OreDictionary.DrillableOreDict[resDef].amountPerPortion);
+
             if (nextResource)
-            {
                 parent.Map.deepResourceGrid.SetAt(cell, resDef, countPresent - num);
-            }
 
             int stackCount = Mathf.Max(1, GenMath.RoundRandom((float)num * yieldPct));
             Thing thing = ThingMaker.MakeThing(resDef);
             thing.stackCount = stackCount;
             GenPlace.TryPlaceThing(thing, parent.InteractionCell, parent.Map, ThingPlaceMode.Near, null, (IntVec3 p) => p != parent.Position && p != parent.InteractionCell);
+            
             if (driller != null)
-            {
                 Find.HistoryEventsManager.RecordEvent(new HistoryEvent(HistoryEventDefOf.Mined, driller.Named(HistoryEventArgsNames.Doer)));
-            }
 
             if (!nextResource || ValuableResourcesPresent())
-            {
                 return;
-            }
 
             if (DeepDrillUtility.GetBaseResource(parent.Map, parent.Position) == null)
             {
@@ -51,9 +47,7 @@ namespace MoreBetterDeepDrill.Comp
                 {
                     ThingWithComps firstThingWithComp = c.GetFirstThingWithComp<MBDD_CompRangedDeepDrill>(parent.Map);
                     if (firstThingWithComp != null && !firstThingWithComp.GetComp<MBDD_CompRangedDeepDrill>().ValuableResourcesPresent())
-                    {
                         firstThingWithComp.SetForbidden(value: true);
-                    }
                 }
             }
         }

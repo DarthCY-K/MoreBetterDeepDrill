@@ -6,13 +6,15 @@ using Verse.AI;
 
 namespace MoreBetterDeepDrill.Jobs
 {
-    public class MBDD_WorkGiver_RangedDeepDrill : WorkGiver_Scanner
+    public class MBDD_WorkGiver_DeepDrill : WorkGiver_Scanner
     {
-        public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForDef(Defs.ThingDefOf.MBDD_RangedDeepDrill);
+        public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial);
 
-        public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
+        public override PathEndMode PathEndMode => PathEndMode.InteractionCell;
+
+        public override Danger MaxPathDanger(Pawn pawn)
         {
-            return Find.StudyManager.GetStudiableThingsAndPlatforms(pawn.Map);
+            return Danger.Deadly;
         }
 
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
@@ -25,7 +27,9 @@ namespace MoreBetterDeepDrill.Jobs
             for (int i = 0; i < allBuildingsColonist.Count; i++)
             {
                 Building building = allBuildingsColonist[i];
-                if (building.def == Defs.ThingDefOf.MBDD_RangedDeepDrill)
+                if (building.def == Defs.ThingDefOf.MBDD_RangedDeepDrill 
+                    || building.def == Defs.ThingDefOf.MBDD_LargeDeepDrill
+                    || building.def == Defs.ThingDefOf.MBDD_ArchotechDeepDrill)
                 {
                     CompPowerTrader comp = building.GetComp<CompPowerTrader>();
                     if ((comp == null || comp.PowerOn) && building.Map.designationManager.DesignationOn(building, DesignationDefOf.Uninstall) == null)
@@ -36,13 +40,6 @@ namespace MoreBetterDeepDrill.Jobs
             }
 
             return true;
-        }
-
-        public override PathEndMode PathEndMode => PathEndMode.InteractionCell;
-
-        public override Danger MaxPathDanger(Pawn pawn)
-        {
-            return Danger.Deadly;
         }
 
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
@@ -56,10 +53,20 @@ namespace MoreBetterDeepDrill.Jobs
             if (building.IsForbidden(pawn))
                 return false;
 
-            if (!pawn.CanReserve(building, 1, -1, null, forced))
-                return false;
+            //根据人数分开处理
+            if (t.def == Defs.ThingDefOf.MBDD_LargeDeepDrill)
+            {
+                if (!pawn.CanReserve(building, 12, 0, null, forced))
+                    return false;
+            }
+            else
+            {
+                if (!pawn.CanReserve(building, 1, -1, null, forced))
+                    return false;
+            }
 
-            if (!building.TryGetComp<Comp.MBDD_CompRangedDeepDrill>().CanDrillNow)
+            var comp = building.GetComp<Comp.MBDD_CompDeepDrill>();
+            if (comp == null || !comp.CanDrillNow)
                 return false;
 
             if (building.Map.designationManager.DesignationOn(building, DesignationDefOf.Uninstall) != null)
@@ -73,7 +80,10 @@ namespace MoreBetterDeepDrill.Jobs
 
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
-            return JobMaker.MakeJob(Defs.JobDefOf.MBDD_SingleOperateDeepDrill, t, 1500, checkOverrideOnExpiry: false);
+            if (t.def == Defs.ThingDefOf.MBDD_LargeDeepDrill)
+                return JobMaker.MakeJob(Defs.JobDefOf.MBDD_MultiOperateDeepDrill, t, 1500, checkOverrideOnExpiry: false);
+            else
+                return JobMaker.MakeJob(Defs.JobDefOf.MBDD_SingleOperateDeepDrill, t, 1500, checkOverrideOnExpiry: false);
         }
     }
 }

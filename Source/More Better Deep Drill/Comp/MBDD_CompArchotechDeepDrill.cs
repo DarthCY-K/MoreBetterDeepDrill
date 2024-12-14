@@ -27,7 +27,7 @@ namespace MoreBetterDeepDrill.Comp
             }
 
             Thing thing = ThingMaker.MakeThing(selectedOre.OreDef);
-            thing.stackCount = Mathf.Max(1, GenMath.RoundRandom((float)selectedOre.OreDef.deepCountPerPortion * yieldPct));
+            thing.stackCount = Mathf.Max(1, GenMath.RoundRandom((float)selectedOre.amountPerPortion * yieldPct));
             GenPlace.TryPlaceThing(thing, parent.InteractionCell, parent.Map, ThingPlaceMode.Near, null, (IntVec3 p) => p != parent.Position && p != parent.InteractionCell);
             if (driller != null)
             {

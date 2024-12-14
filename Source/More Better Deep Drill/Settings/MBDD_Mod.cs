@@ -1,5 +1,4 @@
-﻿using MoreBetterDeepDrill.Defs;
-using MoreBetterDeepDrill.Utils;
+﻿using MoreBetterDeepDrill.Utils;
 using RimWorld;
 using System.Collections.Generic;
 using UnityEngine;
@@ -22,6 +21,7 @@ namespace MoreBetterDeepDrill.Settings
             LongEventHandler.ExecuteWhenFinished(BuildDictionary);
 
             LongEventHandler.ExecuteWhenFinished(OreDictionary.Refresh);
+            LongEventHandler.ExecuteWhenFinished(OreDictionary.InitDrillableDict);
         }
 
         public override string SettingsCategory()

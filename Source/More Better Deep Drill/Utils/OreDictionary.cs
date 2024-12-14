@@ -3,20 +3,28 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using static UnityEngine.GraphicsBuffer;
 
 namespace MoreBetterDeepDrill.Utils
 {
+    /// <summary>
+    /// 矿物辞典静态类
+    /// </summary>
     [StaticConstructorOnStartup]
     public static class OreDictionary
     {
         private static Predicate<ThingDef> validOre;
 
+        public static Dictionary<ThingDef, DrillableOre> DrillableOreDict;
+
         static OreDictionary()
         {
             validOre = ((ThingDef def) => def.deepCommonality > 0);
         }
-
+        
+        /// <summary>
+        /// 建立矿物辞典
+        /// </summary>
+        /// <param name="rebuild">重建</param>
         public static void Build(bool rebuild = false)
         {
             List<DrillableOre> list = (rebuild || GenList.NullOrEmpty<DrillableOre>(StaticValues.ModSetting.oreDictionary)) ? new List<DrillableOre>() : StaticValues.ModSetting.oreDictionary;
@@ -36,6 +44,9 @@ namespace MoreBetterDeepDrill.Utils
             StaticValues.ModSetting.oreDictionary = list;
         }
 
+        /// <summary>
+        /// 刷新并清理list内错误对象
+        /// </summary>
         public static void Refresh()
         {
             var oreDict = StaticValues.ModSetting.oreDictionary;
@@ -46,6 +57,18 @@ namespace MoreBetterDeepDrill.Utils
                     oreDict.Remove(oreDict[i]);
                 }
             }
+        }
+
+        /// <summary>
+        /// 初始化用于查询的临时词典对象
+        /// </summary>
+        public static void InitDrillableDict()
+        {
+            if (DrillableOreDict == null)
+                DrillableOreDict = new Dictionary<ThingDef, DrillableOre>();
+
+            foreach(var ore in StaticValues.ModSetting.oreDictionary)
+                DrillableOreDict.Add(ore.OreDef, ore);
         }
 
         /// <summary>
