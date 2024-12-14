@@ -1,4 +1,6 @@
-﻿using System.Linq;
+﻿using RimWorld;
+using System.Linq;
+using UnityEngine;
 using Verse;
 
 namespace MoreBetterDeepDrill.Utils
@@ -44,6 +46,47 @@ namespace MoreBetterDeepDrill.Utils
                                select rock.building.mineableThing).RandomElement();
             Rand.PopState();
             return result;
+        }
+
+        public static void RenderMouseAttachments(Map map)
+        {
+            IntVec3 c = UI.MouseCell();
+            if (!c.InBounds(map))
+            {
+                return;
+            }
+
+            ThingDef thingDef = map.deepResourceGrid.ThingDefAt(c);
+            if (thingDef != null)
+            {
+                int num = map.deepResourceGrid.CountAt(c);
+                if (num > 0)
+                {
+                    Vector2 vector = c.ToVector3().MapToUIPosition();
+                    GUI.color = Color.white;
+                    Text.Font = GameFont.Small;
+                    Text.Anchor = TextAnchor.MiddleLeft;
+                    float num2 = (UI.CurUICellSize() - 27f) / 2f;
+                    Rect rect = new Rect(vector.x + num2, vector.y - UI.CurUICellSize() + num2, 27f, 27f);
+                    Widgets.ThingIcon(rect, thingDef);
+                    Widgets.Label(new Rect(rect.xMax + 4f, rect.y, 999f, 29f), "DeepResourceRemaining".Translate(NamedArgumentUtility.Named(thingDef, "RESOURCE"), num.Named("COUNT")));
+                    Text.Anchor = TextAnchor.UpperLeft;
+                }
+            }
+        }
+
+        public static bool AnyActiveDeepScannersOnMap(Map map)
+        {
+            foreach (Building item in map.listerBuildings.allBuildingsColonist)
+            {
+                CompDeepScanner compDeepScanner = item.TryGetComp<CompDeepScanner>();
+                if (compDeepScanner != null && compDeepScanner.ShouldShowDeepResourceOverlay())
+                {
+                    return true;
+                }
+            }
+
+            return false;
         }
     }
 }

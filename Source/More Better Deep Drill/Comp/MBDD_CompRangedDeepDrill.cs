@@ -16,7 +16,7 @@ namespace MoreBetterDeepDrill.Comp
 
             if (resDef == null)
                 return;
-            int num = Mathf.Min(countPresent, OreDictionary.DrillableOreDict[resDef].amountPerPortion);
+            int num = Mathf.Min(countPresent, resDef.deepCountPerPortion);
 
             if (nextResource)
                 parent.Map.deepResourceGrid.SetAt(cell, resDef, countPresent - num);

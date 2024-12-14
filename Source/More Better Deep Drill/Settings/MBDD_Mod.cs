@@ -21,7 +21,6 @@ namespace MoreBetterDeepDrill.Settings
             LongEventHandler.ExecuteWhenFinished(BuildDictionary);
 
             LongEventHandler.ExecuteWhenFinished(OreDictionary.Refresh);
-            LongEventHandler.ExecuteWhenFinished(OreDictionary.InitDrillableDict);
         }
 
         public override string SettingsCategory()

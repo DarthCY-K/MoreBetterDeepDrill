@@ -60,18 +60,6 @@ namespace MoreBetterDeepDrill.Utils
         }
 
         /// <summary>
-        /// 初始化用于查询的临时词典对象
-        /// </summary>
-        public static void InitDrillableDict()
-        {
-            if (DrillableOreDict == null)
-                DrillableOreDict = new Dictionary<ThingDef, DrillableOre>();
-
-            foreach(var ore in StaticValues.ModSetting.oreDictionary)
-                DrillableOreDict.Add(ore.OreDef, ore);
-        }
-
-        /// <summary>
         /// 追加可挖掘对象
         /// </summary>
         /// <param name="defs"></param>

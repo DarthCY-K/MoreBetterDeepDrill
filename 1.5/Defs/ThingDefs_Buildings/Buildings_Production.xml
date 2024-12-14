@@ -62,6 +62,9 @@
       </buildingTags>
       <destroySound>BuildingDestroyed_Metal_Small</destroySound>
     </building>
+    <placeWorkers>
+      <li>MoreBetterDeepDrill.PlaceWorkers.MBDD_PlaceWorker_DeepDrill</li>
+    </placeWorkers>
     <costList>
       <Steel>300</Steel>
       <ComponentIndustrial>10</ComponentIndustrial>
@@ -97,6 +100,9 @@
       </buildingTags>
       <destroySound>BuildingDestroyed_Metal_Small</destroySound>
     </building>
+    <placeWorkers>
+      <li>MoreBetterDeepDrill.PlaceWorkers.MBDD_PlaceWorker_DeepDrill</li>
+    </placeWorkers>
     <costList>
       <Steel>750</Steel>
       <ComponentIndustrial>20</ComponentIndustrial>
