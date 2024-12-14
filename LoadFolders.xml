@@ -3,5 +3,6 @@
 	<v1.5>
 		<li>Cont</li>
 		<li>1.5</li>
+		<li IfModActive="spdskatr.projectrimfactory">Extension/1.5/ProjectRimFactoryRevived</li>
     </v1.5>
 </loadFolders>

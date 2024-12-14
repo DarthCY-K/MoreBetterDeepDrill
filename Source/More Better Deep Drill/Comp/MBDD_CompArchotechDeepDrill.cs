@@ -43,7 +43,6 @@ namespace MoreBetterDeepDrill.Comp
                 CanDrillNow = false;
             else
                 CanDrillNow = true;
-            
         }
 
         public override IEnumerable<Gizmo> CompGetGizmosExtra()

@@ -145,6 +145,23 @@ namespace MoreBetterDeepDrill.Comp
             return lastUsedTick >= Find.TickManager.TicksGame - 1;
         }
 
+        /// <summary>
+        /// PRF Mod专用生产方法
+        /// </summary>
+        public virtual void DrillWorkForPRF(float progress, float yieldPct, int lastUsedTick)
+        {
+            this.portionProgress += progress;
+            this.PortionYieldPct += yieldPct;
+            this.lastUsedTick = lastUsedTick;
+
+            if (portionProgress > 10000f)
+            {
+                TryProducePortion(PortionYieldPct);
+                portionProgress = 0f;
+                PortionYieldPct = 0f;
+            }
+        }
+
         public override IEnumerable<Gizmo> CompGetGizmosExtra()
         {
             foreach (Gizmo item in base.CompGetGizmosExtra())

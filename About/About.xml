@@ -26,6 +26,7 @@
 	</modDependencies>
 	<loadAfter>
 		<li>brrainz.harmony</li>
+		<li>spdskatr.projectrimfactory</li>
 	</loadAfter>
 	
 </ModMetaData>
