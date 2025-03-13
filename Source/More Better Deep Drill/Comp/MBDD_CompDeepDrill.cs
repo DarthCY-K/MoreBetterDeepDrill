@@ -44,7 +44,21 @@ namespace MoreBetterDeepDrill.Comp
 
         public float ProgressToNextPortionPercent => portionProgress / 10000f;
 
+        public List<Pawn> Drillers
+        {
+            get => drillers;
+            set
+            {
+                if(value != drillers)
+                {
+                    drillers = value;
+                }
+            }
+        }
         protected List<Pawn> drillers = new List<Pawn>();
+
+        protected Dictionary<Pawn, float> cachedPawnDeepdrillSpeedDict = new Dictionary<Pawn, float>();
+        protected Dictionary<Pawn, float> cachedPawnMiningYieldDict = new Dictionary<Pawn, float>();
 
         public bool CanDrillNow;
 
@@ -110,11 +124,24 @@ namespace MoreBetterDeepDrill.Comp
         public virtual void DrillWork()
         {
             portionProgress += DrillPower;
-            foreach (var p in drillers)
+
+            foreach(var pawn in Drillers)
             {
-                float statValue = p.GetStatValue(StatDefOf.DeepDrillingSpeed);
-                PortionYieldPct += drillers.Count * statValue * p.GetStatValue(StatDefOf.MiningYield) / 10000f;
+                float statValueDeepdrillSpeed = 0f;
+                float statValueMingYield = 0f;
+
+                if (cachedPawnDeepdrillSpeedDict != null && cachedPawnDeepdrillSpeedDict.ContainsKey(pawn))
+                    statValueDeepdrillSpeed = cachedPawnDeepdrillSpeedDict[pawn];
+                if (cachedPawnMiningYieldDict != null && cachedPawnMiningYieldDict.ContainsKey(pawn))
+                    statValueMingYield = cachedPawnMiningYieldDict[pawn];
+
+                PortionYieldPct += statValueDeepdrillSpeed * statValueMingYield * 0.0001f;
             }
+            //foreach (var p in drillers)
+            //{
+            //    float statValue = p.GetStatValue(StatDefOf.DeepDrillingSpeed);
+            //    PortionYieldPct += drillers.Count * statValue * p.GetStatValue(StatDefOf.MiningYield) / 10000f;
+            //}
             lastUsedTick = Find.TickManager.TicksGame;
 
             if (portionProgress > 10000f)
@@ -139,6 +166,16 @@ namespace MoreBetterDeepDrill.Comp
         /// 更新可挖掘状态
         /// </summary>
         protected virtual void UpdateCanDrillState(){ }
+
+        protected virtual void UpdateCachedPawnDrillSpeed()
+        {
+            cachedPawnDeepdrillSpeedDict.Clear();
+            foreach (var p in Drillers)
+            {
+                cachedPawnDeepdrillSpeedDict.Add(p, p.GetStatValue(StatDefOf.DeepDrillingSpeed));
+                cachedPawnMiningYieldDict.Add(p, p.GetStatValue(StatDefOf.MiningYield));
+            }
+        }
 
         public virtual bool UsedLastTick()
         {
