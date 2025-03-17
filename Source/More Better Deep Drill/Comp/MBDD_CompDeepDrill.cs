@@ -72,6 +72,12 @@ namespace MoreBetterDeepDrill.Comp
                 UpdateCanDrillState();
             }
 
+            //每120tick（2s）更新一次状态
+            if (Current.Game.tickManager.TicksGame % 120 == 0)
+            {
+                UpdateCachedPawnDrillSpeed();
+            }
+
             if (CanDrillNow)
             {
                 base.CompTick();
@@ -132,16 +138,13 @@ namespace MoreBetterDeepDrill.Comp
 
                 if (cachedPawnDeepdrillSpeedDict != null && cachedPawnDeepdrillSpeedDict.ContainsKey(pawn))
                     statValueDeepdrillSpeed = cachedPawnDeepdrillSpeedDict[pawn];
+                    
                 if (cachedPawnMiningYieldDict != null && cachedPawnMiningYieldDict.ContainsKey(pawn))
                     statValueMingYield = cachedPawnMiningYieldDict[pawn];
 
                 PortionYieldPct += statValueDeepdrillSpeed * statValueMingYield * 0.0001f;
             }
-            //foreach (var p in drillers)
-            //{
-            //    float statValue = p.GetStatValue(StatDefOf.DeepDrillingSpeed);
-            //    PortionYieldPct += drillers.Count * statValue * p.GetStatValue(StatDefOf.MiningYield) / 10000f;
-            //}
+
             lastUsedTick = Find.TickManager.TicksGame;
 
             if (portionProgress > 10000f)
@@ -170,6 +173,7 @@ namespace MoreBetterDeepDrill.Comp
         protected virtual void UpdateCachedPawnDrillSpeed()
         {
             cachedPawnDeepdrillSpeedDict.Clear();
+            cachedPawnMiningYieldDict.Clear();
             foreach (var p in Drillers)
             {
                 cachedPawnDeepdrillSpeedDict.Add(p, p.GetStatValue(StatDefOf.DeepDrillingSpeed));
