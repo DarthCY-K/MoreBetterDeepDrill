@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <MBDD_Label_EnableInsectoids>启用虫灾</MBDD_Label_EnableInsectoids>
+  <MBDD_Label_EnableMechdroids>允许机械族钻井</MBDD_Label_EnableMechdroids>
+  <MBDD_Label_OreListedDisplay>可钻探矿物和基础产量</MBDD_Label_OreListedDisplay>
+  <MBDD_ButtonText_ReBuildOreDictionary>重建矿物辞典</MBDD_ButtonText_ReBuildOreDictionary>
+
+</LanguageData>

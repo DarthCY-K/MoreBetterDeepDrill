@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <MBDD_ArchotechDeepDrill_Gizmo_SelectOre>select ore...</MBDD_ArchotechDeepDrill_Gizmo_SelectOre>
+  <MBDD_ArchotechDeepDrill_Gizmo_NoOre>no available ore</MBDD_ArchotechDeepDrill_Gizmo_NoOre>
+  <MBDD_ArchotechDeepDrill_FloatMenu_SelectOre>select: </MBDD_ArchotechDeepDrill_FloatMenu_SelectOre>
+  <MBDD_ArchotechDeepDrill_FloatMenu_SameOre>same ore</MBDD_ArchotechDeepDrill_FloatMenu_SameOre>
+
+</LanguageData>

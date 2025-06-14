@@ -1,0 +1,21 @@
+﻿<?xml version="1.0" encoding="utf-8" ?>
+<Defs>
+
+  <!-- ============= Mining ============= -->
+
+  <WorkGiverDef>
+    <defName>MBDD_OperateDeepDrill</defName>
+    <label>drill at deep drill</label>
+    <giverClass>MoreBetterDeepDrill.Jobs.MBDD_WorkGiver_DeepDrill</giverClass>
+    <workType>Mining</workType>
+    <priorityInType>50</priorityInType>
+    <verb>drill</verb>
+    <gerund>drilling</gerund>
+    <requiredCapacities>
+      <li>Manipulation</li>
+    </requiredCapacities>
+    <canBeDoneByMechs>true</canBeDoneByMechs>
+    <canBeDoneByMutants>false</canBeDoneByMutants>
+  </WorkGiverDef>
+
+</Defs>

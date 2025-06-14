@@ -155,7 +155,7 @@ namespace MoreBetterDeepDrill.Comp
             }
         }
 
-        public override void PostDeSpawn(Map map)
+        public override void PostDeSpawn()
         {
             portionProgress = 0f;
             PortionYieldPct = 0f;

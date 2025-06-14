@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <MBDD_Label_EnableInsectoids>Enable Insectoids</MBDD_Label_EnableInsectoids>
+  <MBDD_Label_EnableMechdroids>Allow Mechdroids Drill</MBDD_Label_EnableMechdroids>
+  <MBDD_Label_OreListedDisplay>Drillable Ores and Production Amount</MBDD_Label_OreListedDisplay>
+  <MBDD_ButtonText_ReBuildOreDictionary>Rebuild Ore Dictionary</MBDD_ButtonText_ReBuildOreDictionary>
+
+</LanguageData>

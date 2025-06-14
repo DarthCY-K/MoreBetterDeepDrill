@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<Patch>
+	<Operation Class="PatchOperationAdd">
+		<xpath>Defs/StorytellerDef[@Name="BaseStoryteller"]/comps</xpath>
+		<value>
+      		<li Class="MoreBetterDeepDrill.Comp.MBDD_StorytellerCompProperties_Infestation">
+        		<baseMtbDaysPerDrill>20</baseMtbDaysPerDrill>
+        		<allowedTargetTags>
+         			<li>Map_PlayerHome</li>
+          			<li>Map_TempIncident</li>
+          			<li>Map_Misc</li>
+          			<li>Map_RaidBeacon</li>
+        		</allowedTargetTags>
+      		</li>
+		</value>
+	</Operation>
+</Patch>

@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <MBDD_ArchotechDeepDrill_Gizmo_SelectOre>选择矿石...</MBDD_ArchotechDeepDrill_Gizmo_SelectOre>
+  <MBDD_ArchotechDeepDrill_Gizmo_NoOre>没有可用矿石</MBDD_ArchotechDeepDrill_Gizmo_NoOre>
+  <MBDD_ArchotechDeepDrill_FloatMenu_SelectOre>选择：</MBDD_ArchotechDeepDrill_FloatMenu_SelectOre>
+  <MBDD_ArchotechDeepDrill_FloatMenu_SameOre>矿石相同</MBDD_ArchotechDeepDrill_FloatMenu_SameOre>
+
+</LanguageData>
