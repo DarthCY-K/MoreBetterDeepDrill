@@ -91,7 +91,6 @@ namespace MoreBetterDeepDrill.Settings
                 AddExteraDrillable();
             }
 
-
             if (ModSetting.oreDictionary != null && ModSetting.oreDictionary.Count > 0)
             {
                 //滚动条

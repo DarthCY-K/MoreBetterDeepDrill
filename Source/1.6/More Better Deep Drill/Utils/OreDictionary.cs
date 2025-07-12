@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
+using static HarmonyLib.Code;
 
 namespace MoreBetterDeepDrill.Utils
 {
@@ -38,7 +39,11 @@ namespace MoreBetterDeepDrill.Utils
                     ThingDef ore = enumerator.Current;
                     bool flag = rebuild || GenList.NullOrEmpty<DrillableOre>(list) || !GenCollection.Any<DrillableOre>(list, (DrillableOre x) => ore == x.OreDef);
                     if (flag)
+                    {
+                        LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{ore.defName}] was added to the OreDict.");
                         list.Add(new DrillableOre(ore, ore.deepCountPerPortion));
+                    }
+
                 }
             }
             StaticValues.ModSetting.oreDictionary = list;
@@ -90,7 +95,8 @@ namespace MoreBetterDeepDrill.Utils
                     //检查现在的列表
                     foreach (var exist in dict)
                     {
-                        if (exist.OreDef != null && exist.OreDef == tempOreDef)
+                        //1.6dlc新增了SolidIce，开采无产出，应该从可开采石头中过滤掉
+                        if ((exist.OreDef != null && exist.OreDef == tempOreDef) || tempOreDef == null)
                         {
                             dumplicate = true;
                             break;
@@ -105,8 +111,9 @@ namespace MoreBetterDeepDrill.Utils
                 }
 
                 //添加新开采物
-                foreach(var newOre in newDrillableList)
+                foreach (var newOre in newDrillableList)
                 {
+                    LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{newOre.OreDef.defName}] was added to the OreDict.");
                     dict.Add(newOre);
                 }
             }
