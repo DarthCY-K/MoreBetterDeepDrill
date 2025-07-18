@@ -1,4 +1,5 @@
-﻿using RimWorld;
+﻿using MoreBetterDeepDrill.Utils;
+using RimWorld;
 using System.Collections.Generic;
 using Verse;
 
@@ -9,6 +10,9 @@ namespace MoreBetterDeepDrill.Comp
         protected CompPowerTrader powerComp;
 
         protected float portionProgress = 0;
+
+        //TODO 测试用最大挖掘力量，后续需要移动到setting里
+        protected float maxDrillPower = 3f;
 
         public float PortionYieldPct
         {
@@ -26,7 +30,8 @@ namespace MoreBetterDeepDrill.Comp
 
         public float DrillPower
         {
-            get => drillPower;
+            //挖掘力不能超过最大限制
+            get => drillPower > maxDrillPower ? maxDrillPower : drillPower;
             protected set
             {
                 if (value > 0)
@@ -109,12 +114,17 @@ namespace MoreBetterDeepDrill.Comp
             foreach (Pawn p in drillers)
             {
                 if (driller == p)
+                {
                     return;
+                }
+
             }
 
             float statValue = driller.GetStatValue(StatDefOf.DeepDrillingSpeed);
             DrillPower += statValue;
             drillers.Add(driller);
+
+            LogUtil.LogNormal($"MBDD: Worker named [{driller.Name.ToStringSafe()}] joined the drillwork.");
         }
 
         /// <summary>
@@ -126,6 +136,8 @@ namespace MoreBetterDeepDrill.Comp
             float statValue = driller.GetStatValue(StatDefOf.DeepDrillingSpeed);
             DrillPower -= statValue;
             drillers.Remove(driller);
+
+            LogUtil.LogNormal($"MBDD: Worker named [{driller.Name.ToStringSafe()}] leaved the drillwork.");
         }
 
         public virtual void DrillWork()

@@ -13,6 +13,14 @@ namespace MoreBetterDeepDrill.Comp
         protected DrillableOre selectedOre;
         protected bool targetingOreEnable;
 
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+
+            Scribe_Values.Look<bool>(ref targetingOreEnable, "targetingOreEnable");
+            Scribe_Deep.Look(ref selectedOre, "selectedOre");
+        }
+
         protected override void TryProducePortion(float yieldPct, Pawn driller = null)
         {
             ThingDef resDef;
@@ -20,13 +28,24 @@ namespace MoreBetterDeepDrill.Comp
             IntVec3 cell;
             bool nextResource = false;
 
+            //定向模式下找不到矿就直接不挖了
             if (targetingOreEnable)
+            {
+                if (selectedOre == null)
+                    return;
+
                 nextResource = GetNextResource(out resDef, out countPresent, out cell, selectedOre);
+                if(nextResource == false)
+                    return;
+            }
             else
+            {
                 nextResource = GetNextResource(out resDef, out countPresent, out cell);
+            }
 
             if (resDef == null)
                 return;
+
             int num = Mathf.Min(countPresent, resDef.deepCountPerPortion);
 
             if (nextResource)
@@ -77,13 +96,21 @@ namespace MoreBetterDeepDrill.Comp
         {
             if (powerComp != null && powerComp.PowerOn)
             {
-                if (Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null)
+                //定向挖掘情况下找不到指定矿就不能允许工作
+                if (targetingOreEnable)
                 {
-                    CanDrillNow = true;
+                    CanDrillNow = ValuableResourcesPresent();
                 }
                 else
                 {
-                    CanDrillNow = ValuableResourcesPresent();
+                    if (Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null)
+                    {
+                        CanDrillNow = true;
+                    }
+                    else
+                    {
+                        CanDrillNow = ValuableResourcesPresent();
+                    }
                 }
             }
             else
@@ -99,7 +126,12 @@ namespace MoreBetterDeepDrill.Comp
             IntVec3 cell;
 
             if (targetingOreEnable)
-                return GetNextResource(out resDef, out countPresent, out cell, selectedOre);
+            {
+                if (selectedOre != null)
+                    return GetNextResource(out resDef, out countPresent, out cell, selectedOre);
+                else
+                    return false;
+            }
             else
                 return GetNextResource(out resDef, out countPresent, out cell);
         }
@@ -115,7 +147,7 @@ namespace MoreBetterDeepDrill.Comp
             {
                 defaultLabel = "MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label".Translate(),
                 defaultDesc = "MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc".Translate(),
-                icon = ContentFinder<Texture2D>.Get("UI/Commands/WorkableUI"),
+                icon = ContentFinder<Texture2D>.Get("UI/Commands/EnableOreTargetingToggle"),
                 isActive = (() => targetingOreEnable),
                 toggleAction = delegate ()
                 {
@@ -169,19 +201,28 @@ namespace MoreBetterDeepDrill.Comp
                 ThingDef resDef;
 
                 if (targetingOreEnable)
-                    GetNextResource(out resDef, out var _, out var _, selectedOre);
+                {
+                    if (selectedOre == null)
+                        return "DeepDrillNoResource_SelectedOre_Null".Translate();
+                    else
+                        GetNextResource(out resDef, out var _, out var _, selectedOre);
+                }
                 else
+                {
                     GetNextResource(out resDef, out var _, out var _);
+                }
 
                 if (resDef == null)
                 {
-                    return "DeepDrillNoResources".Translate();
+                    return targetingOreEnable ? "DeepDrillNoResource_SelectedOre_Null".Translate() : "DeepDrillNoResources".Translate();
                 }
-
-                if (DebugSettings.ShowDevGizmos)
-                    return "ResourceBelow".Translate() + ": " + resDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0") + $"\nPortionYieldPct: {PortionYieldPct}\nDrillPower: {DrillPower}";
                 else
-                    return "ResourceBelow".Translate() + ": " + resDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0");
+                {
+                    if (DebugSettings.ShowDevGizmos)
+                        return "ResourceBelow".Translate() + ": " + resDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0") + $"\nPortionYieldPct: {PortionYieldPct}\nDrillPower: {drillPower} (Max is: {maxDrillPower})";
+                    else
+                        return "ResourceBelow".Translate() + ": " + resDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0");
+                }
             }
 
             return null;

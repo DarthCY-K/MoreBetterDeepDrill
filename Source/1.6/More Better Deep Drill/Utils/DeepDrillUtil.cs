@@ -66,7 +66,7 @@ namespace MoreBetterDeepDrill.Utils
                 }
             }
 
-            resDef = GetBaseResource(map, p);
+            resDef = null;
             countPresent = int.MaxValue;
             cell = p;
             return false;
