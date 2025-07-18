@@ -1,5 +1,8 @@
-﻿using MoreBetterDeepDrill.Utils;
+﻿using MoreBetterDeepDrill.Settings;
+using MoreBetterDeepDrill.Types;
+using MoreBetterDeepDrill.Utils;
 using RimWorld;
+using System.Collections.Generic;
 using UnityEngine;
 using Verse;
 
@@ -7,12 +10,20 @@ namespace MoreBetterDeepDrill.Comp
 {
     public class MBDD_CompRangedDeepDrill : MBDD_CompDeepDrill
     {
+        protected DrillableOre selectedOre;
+        protected bool targetingOreEnable;
+
         protected override void TryProducePortion(float yieldPct, Pawn driller = null)
         {
             ThingDef resDef;
             int countPresent;
             IntVec3 cell;
-            bool nextResource = GetNextResource(out resDef, out countPresent, out cell);
+            bool nextResource = false;
+
+            if (targetingOreEnable)
+                nextResource = GetNextResource(out resDef, out countPresent, out cell, selectedOre);
+            else
+                nextResource = GetNextResource(out resDef, out countPresent, out cell);
 
             if (resDef == null)
                 return;
@@ -25,7 +36,7 @@ namespace MoreBetterDeepDrill.Comp
             Thing thing = ThingMaker.MakeThing(resDef);
             thing.stackCount = stackCount;
             GenPlace.TryPlaceThing(thing, parent.InteractionCell, parent.Map, ThingPlaceMode.Near, null, (IntVec3 p) => p != parent.Position && p != parent.InteractionCell);
-            
+
             if (driller != null)
                 Find.HistoryEventsManager.RecordEvent(new HistoryEvent(HistoryEventDefOf.Mined, driller.Named(HistoryEventArgsNames.Doer)));
 
@@ -57,9 +68,14 @@ namespace MoreBetterDeepDrill.Comp
             return Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell);
         }
 
+        private bool GetNextResource(out ThingDef resDef, out int countPresent, out IntVec3 cell, DrillableOre targetOre)
+        {
+            return Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell, targetOre.OreDef);
+        }
+
         protected override void UpdateCanDrillState()
         {
-            if(powerComp != null && powerComp.PowerOn)
+            if (powerComp != null && powerComp.PowerOn)
             {
                 if (Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null)
                 {
@@ -81,14 +97,82 @@ namespace MoreBetterDeepDrill.Comp
             ThingDef resDef;
             int countPresent;
             IntVec3 cell;
-            return GetNextResource(out resDef, out countPresent, out cell);
+
+            if (targetingOreEnable)
+                return GetNextResource(out resDef, out countPresent, out cell, selectedOre);
+            else
+                return GetNextResource(out resDef, out countPresent, out cell);
+        }
+
+        public override IEnumerable<Gizmo> CompGetGizmosExtra()
+        {
+            foreach (Gizmo item in base.CompGetGizmosExtra())
+            {
+                yield return item;
+            }
+
+            yield return new Command_Toggle
+            {
+                defaultLabel = "MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label".Translate(),
+                defaultDesc = "MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Commands/WorkableUI"),
+                isActive = (() => targetingOreEnable),
+                toggleAction = delegate ()
+                {
+                    targetingOreEnable = !targetingOreEnable;
+                }
+            };
+
+            if (targetingOreEnable)
+            {
+                Command_Action action_selectOre = new Command_Action();
+                action_selectOre.defaultLabel = "MBDD_RangedDeepDrill_Gizmo_SelectOre".Translate();
+                if (selectedOre != null)
+                    action_selectOre.icon = selectedOre.OreDef.uiIcon;
+                else
+                    action_selectOre.icon = ThingDefOf.DeepDrill.uiIcon;
+                action_selectOre.Disabled = StaticValues.ModSetting.oreDictionary == null || StaticValues.ModSetting.oreDictionary.Count <= 0;
+                action_selectOre.disabledReason = "MBDD_RangedDeepDrill_Gizmo_NoOre".Translate();
+                action_selectOre.action = delegate
+                {
+                    List<FloatMenuOption> list = new List<FloatMenuOption>();
+                    using (IEnumerator<DrillableOre> enumerator = MBDD_Mod.ModSetting.oreDictionary.GetEnumerator())
+                    {
+                        while (enumerator.MoveNext())
+                        {
+                            var ore = enumerator.Current;
+                            FloatMenuOption floatMenu_selectOre = new FloatMenuOption("MBDD_RangedDeepDrill_FloatMenu_SelectOre".Translate() + ore.OreDef.LabelCap, delegate ()
+                            {
+                                selectedOre = ore;
+                            }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
+                            floatMenu_selectOre.Disabled = selectedOre == ore;
+                            action_selectOre.disabledReason = "MBDD_RangedDeepDrill_FloatMenu_SameOre".Translate();
+
+                            list.Add(floatMenu_selectOre);
+                        }
+                    }
+                    if (list.Count != 0)
+                    {
+                        FloatMenu window = new FloatMenu(list);
+                        Find.WindowStack.Add(window);
+                    }
+                };
+
+                yield return action_selectOre;
+            }
         }
 
         public override string CompInspectStringExtra()
         {
             if (parent.Spawned)
             {
-                GetNextResource(out var resDef, out var _, out var _);
+                ThingDef resDef;
+
+                if (targetingOreEnable)
+                    GetNextResource(out resDef, out var _, out var _, selectedOre);
+                else
+                    GetNextResource(out resDef, out var _, out var _);
+
                 if (resDef == null)
                 {
                     return "DeepDrillNoResources".Translate();

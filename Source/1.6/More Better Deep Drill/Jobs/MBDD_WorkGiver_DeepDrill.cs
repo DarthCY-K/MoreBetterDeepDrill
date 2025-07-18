@@ -27,7 +27,7 @@ namespace MoreBetterDeepDrill.Jobs
             for (int i = 0; i < allBuildingsColonist.Count; i++)
             {
                 Building building = allBuildingsColonist[i];
-                if (building.def == Defs.ThingDefOf.MBDD_RangedDeepDrill 
+                if (building.def == Defs.ThingDefOf.MBDD_RangedDeepDrill
                     || building.def == Defs.ThingDefOf.MBDD_LargeDeepDrill
                     || building.def == Defs.ThingDefOf.MBDD_ArchotechDeepDrill)
                 {

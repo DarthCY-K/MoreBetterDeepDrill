@@ -3,7 +3,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Verse;
-using static HarmonyLib.Code;
 
 namespace MoreBetterDeepDrill.Utils
 {
@@ -21,7 +20,7 @@ namespace MoreBetterDeepDrill.Utils
         {
             validOre = ((ThingDef def) => def.deepCommonality > 0);
         }
-        
+
         /// <summary>
         /// 建立矿物辞典
         /// </summary>
@@ -43,7 +42,6 @@ namespace MoreBetterDeepDrill.Utils
                         LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{ore.defName}] was added to the OreDict.");
                         list.Add(new DrillableOre(ore, ore.deepCountPerPortion));
                     }
-
                 }
             }
             StaticValues.ModSetting.oreDictionary = list;
@@ -77,7 +75,7 @@ namespace MoreBetterDeepDrill.Utils
 
             if (dict != null)
             {
-                foreach(var target in defs)
+                foreach (var target in defs)
                 {
                     var amount = 1;
                     dumplicate = false;

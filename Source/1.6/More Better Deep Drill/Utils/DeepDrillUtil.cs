@@ -13,12 +13,51 @@ namespace MoreBetterDeepDrill.Utils
             return resDef;
         }
 
+        /// <summary>
+        /// 默认找矿方法
+        /// </summary>
+        /// <param name="p">位置</param>
+        /// <param name="map">当前地图</param>
+        /// <param name="resDef">返回的资源类型</param>
+        /// <param name="countPresent">数量？</param>
+        /// <param name="cell">单元块</param>
+        /// <returns>是否找到资源</returns>
         public static bool GetNextResource(IntVec3 p, Map map, out ThingDef resDef, out int countPresent, out IntVec3 cell)
         {
             foreach (var intVec in map.AllCells)
             {
                 ThingDef thingDef = map.deepResourceGrid.ThingDefAt(intVec);
                 if (thingDef != null)
+                {
+                    resDef = thingDef;
+                    countPresent = map.deepResourceGrid.CountAt(intVec);
+                    cell = intVec;
+                    return true;
+                }
+            }
+
+            resDef = GetBaseResource(map, p);
+            countPresent = int.MaxValue;
+            cell = p;
+            return false;
+        }
+
+        /// <summary>
+        /// 定向找矿方法
+        /// </summary>
+        /// <param name="p">位置</param>
+        /// <param name="map">当前地图</param>
+        /// <param name="resDef">返回的资源类型</param>
+        /// <param name="countPresent">数量？</param>
+        /// <param name="cell">单元块</param>
+        /// <param name="targetOre">定向目标矿物</param>
+        /// <returns>是否找到资源</returns>
+        public static bool GetNextResource(IntVec3 p, Map map, out ThingDef resDef, out int countPresent, out IntVec3 cell, ThingDef targetDef)
+        {
+            foreach (var intVec in map.AllCells)
+            {
+                ThingDef thingDef = map.deepResourceGrid.ThingDefAt(intVec);
+                if (thingDef != null && thingDef == targetDef)
                 {
                     resDef = thingDef;
                     countPresent = map.deepResourceGrid.CountAt(intVec);

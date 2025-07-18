@@ -1,5 +1,4 @@
-﻿using MoreBetterDeepDrill.Utils;
-using RimWorld;
+﻿using RimWorld;
 using Verse;
 
 namespace MoreBetterDeepDrill.PlaceWorkers

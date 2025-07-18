@@ -49,12 +49,13 @@ namespace MoreBetterDeepDrill.Comp
             get => drillers;
             set
             {
-                if(value != drillers)
+                if (value != drillers)
                 {
                     drillers = value;
                 }
             }
         }
+
         protected List<Pawn> drillers = new List<Pawn>();
 
         protected Dictionary<Pawn, float> cachedPawnDeepdrillSpeedDict = new Dictionary<Pawn, float>();
@@ -131,14 +132,14 @@ namespace MoreBetterDeepDrill.Comp
         {
             portionProgress += DrillPower;
 
-            foreach(var pawn in Drillers)
+            foreach (var pawn in Drillers)
             {
                 float statValueDeepdrillSpeed = 0f;
                 float statValueMingYield = 0f;
 
                 if (cachedPawnDeepdrillSpeedDict != null && cachedPawnDeepdrillSpeedDict.ContainsKey(pawn))
                     statValueDeepdrillSpeed = cachedPawnDeepdrillSpeedDict[pawn];
-                    
+
                 if (cachedPawnMiningYieldDict != null && cachedPawnMiningYieldDict.ContainsKey(pawn))
                     statValueMingYield = cachedPawnMiningYieldDict[pawn];
 
@@ -168,7 +169,8 @@ namespace MoreBetterDeepDrill.Comp
         /// <summary>
         /// 更新可挖掘状态
         /// </summary>
-        protected virtual void UpdateCanDrillState(){ }
+        protected virtual void UpdateCanDrillState()
+        { }
 
         protected virtual void UpdateCachedPawnDrillSpeed()
         {

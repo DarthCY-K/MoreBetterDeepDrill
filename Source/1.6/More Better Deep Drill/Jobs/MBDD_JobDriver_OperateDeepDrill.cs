@@ -28,7 +28,7 @@ namespace MoreBetterDeepDrill.Jobs
                 ((Building)actor.CurJob.targetA.Thing).GetComp<Comp.MBDD_CompDeepDrill>().DrillJoinWork(actor);
 
                 //机械族没有技能，所以不能给他们加经验
-                if(actor.skills != null)
+                if (actor.skills != null)
                     actor.skills.Learn(SkillDefOf.Mining, 0.065f);
             };
             work.AddFinishAction(delegate
