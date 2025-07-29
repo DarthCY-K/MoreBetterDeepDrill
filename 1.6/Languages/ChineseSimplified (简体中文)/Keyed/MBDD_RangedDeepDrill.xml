@@ -1,0 +1,9 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<LanguageData>
+  
+  <MBDD_RangedDeepDrill_Gizmo_SelectOre>定向采掘...</MBDD_RangedDeepDrill_Gizmo_SelectOre>
+  <MBDD_RangedDeepDrill_Gizmo_NoOre>没有可用矿石</MBDD_RangedDeepDrill_Gizmo_NoOre>
+  <MBDD_RangedDeepDrill_FloatMenu_SelectOre>选择：</MBDD_RangedDeepDrill_FloatMenu_SelectOre>
+  <MBDD_RangedDeepDrill_FloatMenu_SameOre>矿石相同</MBDD_RangedDeepDrill_FloatMenu_SameOre>
+
+</LanguageData>
