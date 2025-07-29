@@ -124,7 +124,7 @@ namespace MoreBetterDeepDrill.Comp
             DrillPower += statValue;
             drillers.Add(driller);
 
-            LogUtil.LogNormal($"MBDD: Worker named [{driller.Name.ToStringSafe()}] joined the drillwork.");
+            //LogUtil.LogNormal($"MBDD: Worker named [{driller.Name.ToStringSafe()}] joined the drillwork.");
         }
 
         /// <summary>
@@ -137,7 +137,7 @@ namespace MoreBetterDeepDrill.Comp
             DrillPower -= statValue;
             drillers.Remove(driller);
 
-            LogUtil.LogNormal($"MBDD: Worker named [{driller.Name.ToStringSafe()}] leaved the drillwork.");
+            //LogUtil.LogNormal($"MBDD: Worker named [{driller.Name.ToStringSafe()}] leaved the drillwork.");
         }
 
         public virtual void DrillWork()
