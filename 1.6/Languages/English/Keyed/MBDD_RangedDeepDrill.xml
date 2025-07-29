@@ -1,5 +1,8 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
+
+  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>enable select ore</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>
+  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>You can drill specific ore after selection. If there are no specific ore on map, it will stop working, then wait until specific ore appears on map.</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>
   
   <MBDD_RangedDeepDrill_Gizmo_SelectOre>select ore...</MBDD_RangedDeepDrill_Gizmo_SelectOre>
   <MBDD_RangedDeepDrill_Gizmo_NoOre>no available ore</MBDD_RangedDeepDrill_Gizmo_NoOre>
