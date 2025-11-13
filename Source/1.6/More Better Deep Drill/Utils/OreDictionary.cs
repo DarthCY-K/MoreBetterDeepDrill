@@ -28,22 +28,20 @@ namespace MoreBetterDeepDrill.Utils
         public static void Build(bool rebuild = false)
         {
             List<DrillableOre> list = (rebuild || GenList.NullOrEmpty<DrillableOre>(StaticValues.ModSetting.oreDictionary)) ? new List<DrillableOre>() : StaticValues.ModSetting.oreDictionary;
-            IEnumerable<ThingDef> enumerable = from def in DefDatabase<ThingDef>.AllDefs
-                                               where OreDictionary.validOre(def)
-                                               select def;
-            using (IEnumerator<ThingDef> enumerator = enumerable.GetEnumerator())
+            IEnumerable<ThingDef> validOres = from def in DefDatabase<ThingDef>.AllDefs
+                                              where OreDictionary.validOre(def)
+                                              select def;
+
+            foreach (ThingDef ore in validOres)
             {
-                while (enumerator.MoveNext())
+                bool shouldAdd = rebuild || GenList.NullOrEmpty<DrillableOre>(list) || !GenCollection.Any<DrillableOre>(list, (DrillableOre x) => ore == x.OreDef);
+                if (shouldAdd)
                 {
-                    ThingDef ore = enumerator.Current;
-                    bool flag = rebuild || GenList.NullOrEmpty<DrillableOre>(list) || !GenCollection.Any<DrillableOre>(list, (DrillableOre x) => ore == x.OreDef);
-                    if (flag)
-                    {
-                        LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{ore.defName}] was added to the OreDict.");
-                        list.Add(new DrillableOre(ore, ore.deepCountPerPortion));
-                    }
+                    LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{ore.defName}] was added to the OreDict.");
+                    list.Add(new DrillableOre(ore, ore.deepCountPerPortion));
                 }
             }
+
             StaticValues.ModSetting.oreDictionary = list;
         }
 
@@ -53,13 +51,7 @@ namespace MoreBetterDeepDrill.Utils
         public static void Refresh()
         {
             var oreDict = StaticValues.ModSetting.oreDictionary;
-            for (int i = oreDict.Count - 1; i >= 0; i--)
-            {
-                if (oreDict[i] == null)
-                {
-                    oreDict.Remove(oreDict[i]);
-                }
-            }
+            oreDict?.RemoveAll(ore => ore == null);
         }
 
         /// <summary>
@@ -68,51 +60,44 @@ namespace MoreBetterDeepDrill.Utils
         /// <param name="defs"></param>
         public static void AddExtraDrillable(List<ThingDef> defs)
         {
-            var dumplicate = false;
             var dict = StaticValues.ModSetting.oreDictionary;
-            ThingDef tempOreDef;
-            List<DrillableOre> newDrillableList = new List<DrillableOre>();
+            if (dict == null)
+                return;
 
-            if (dict != null)
+            // 使用HashSet快速查找已存在的矿物
+            HashSet<ThingDef> existingOreDefs = new HashSet<ThingDef>();
+            foreach (var exist in dict)
             {
-                foreach (var target in defs)
+                if (exist.OreDef != null)
+                    existingOreDefs.Add(exist.OreDef);
+            }
+
+            // 添加新的可挖掘对象
+            foreach (var target in defs)
+            {
+                ThingDef tempOreDef;
+                int amount = 1;
+
+                if (target.building != null)
                 {
-                    var amount = 1;
-                    dumplicate = false;
-
-                    if (target.building != null)
-                    {
-                        tempOreDef = target.building.mineableThing;
-                        amount = target.building.mineableYield;
-                    }
-                    else
-                    {
-                        tempOreDef = target;
-                    }
-
-                    //检查现在的列表
-                    foreach (var exist in dict)
-                    {
-                        //1.6dlc新增了SolidIce，开采无产出，应该从可开采石头中过滤掉
-                        if ((exist.OreDef != null && exist.OreDef == tempOreDef) || tempOreDef == null)
-                        {
-                            dumplicate = true;
-                            break;
-                        }
-                    }
-
-                    //不重复就添加，重复的话就中止添加
-                    if (!dumplicate)
-                        newDrillableList.Add(new DrillableOre(tempOreDef, amount));
-                    else
-                        continue;
+                    tempOreDef = target.building.mineableThing;
+                    amount = target.building.mineableYield;
+                }
+                else
+                {
+                    tempOreDef = target;
                 }
 
-                //添加新开采物
-                foreach (var newOre in newDrillableList)
+                // 1.6dlc新增了SolidIce，开采无产出，应该从可开采石头中过滤掉
+                if (tempOreDef == null)
+                    continue;
+
+                // 不重复就添加
+                if (!existingOreDefs.Contains(tempOreDef))
                 {
-                    LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{newOre.OreDef.defName}] was added to the OreDict.");
-                    dict.Add(newOre);
+                    LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{tempOreDef.defName}] was added to the OreDict.");
+                    dict.Add(new DrillableOre(tempOreDef, amount));
+                    existingOreDefs.Add(tempOreDef);
                 }
             }
         }

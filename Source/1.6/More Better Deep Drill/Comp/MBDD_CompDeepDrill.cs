@@ -111,14 +111,8 @@ namespace MoreBetterDeepDrill.Comp
         /// <param name="driller"></param>
         public virtual void DrillJoinWork(Pawn driller)
         {
-            foreach (Pawn p in drillers)
-            {
-                if (driller == p)
-                {
-                    return;
-                }
-
-            }
+            if (drillers.Contains(driller))
+                return;
 
             float statValue = driller.GetStatValue(StatDefOf.DeepDrillingSpeed);
             DrillPower += statValue;
@@ -149,18 +143,16 @@ namespace MoreBetterDeepDrill.Comp
                 float statValueDeepdrillSpeed = 0f;
                 float statValueMingYield = 0f;
 
-                if (cachedPawnDeepdrillSpeedDict != null && cachedPawnDeepdrillSpeedDict.ContainsKey(pawn))
-                    statValueDeepdrillSpeed = cachedPawnDeepdrillSpeedDict[pawn];
-
-                if (cachedPawnMiningYieldDict != null && cachedPawnMiningYieldDict.ContainsKey(pawn))
-                    statValueMingYield = cachedPawnMiningYieldDict[pawn];
-
-                PortionYieldPct += statValueDeepdrillSpeed * statValueMingYield * 0.0001f;
+                if (cachedPawnDeepdrillSpeedDict != null && cachedPawnDeepdrillSpeedDict.TryGetValue(pawn, out statValueDeepdrillSpeed)
+                    && cachedPawnMiningYieldDict != null && cachedPawnMiningYieldDict.TryGetValue(pawn, out statValueMingYield))
+                {
+                    PortionYieldPct += statValueDeepdrillSpeed * statValueMingYield * 0.0001f;
+                }
             }
 
             lastUsedTick = Find.TickManager.TicksGame;
 
-            if (portionProgress > 10000f)
+            if (portionProgress > WorkPerPortionBase)
             {
                 TryProducePortion(PortionYieldPct);
                 portionProgress = 0f;
