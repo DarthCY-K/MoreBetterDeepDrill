@@ -51,8 +51,9 @@ namespace MoreBetterDeepDrill.Settings
 
         private void AddExteraDrillable()
         {
+            // 复用已经缓存的database，避免重复遍历DefDatabase
             List<ThingDef> extraThingList = new List<ThingDef>();
-            foreach (var def in DefDatabase<ThingDef>.AllDefsListForReading)
+            foreach (var def in ModSetting.database)
             {
                 if (def.building != null && (def.building.isResourceRock || def.building.isNaturalRock) && def.mineable)
                     extraThingList.Add(def);
