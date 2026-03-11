@@ -1,4 +1,5 @@
-﻿using MoreBetterDeepDrill.Utils;
+using MoreBetterDeepDrill.Types;
+using MoreBetterDeepDrill.Utils;
 using RimWorld;
 using System.Collections.Generic;
 using UnityEngine;
@@ -10,16 +11,14 @@ namespace MoreBetterDeepDrill.Settings
     {
         public static MBDD_Settings ModSetting;
 
+        private readonly Dictionary<string, string> oreAmountBuffers = new Dictionary<string, string>();
         private Vector2 scrollPosition = Vector2.zero;
-
-        private float scrollViewHeight = 0f;
 
         public MBDD_Mod(ModContentPack content) : base(content)
         {
             LongEventHandler.ExecuteWhenFinished(() => { ModSetting = GetSettings<MBDD_Settings>(); });
             LongEventHandler.ExecuteWhenFinished(PushToDatabase);
             LongEventHandler.ExecuteWhenFinished(BuildDictionary);
-
             LongEventHandler.ExecuteWhenFinished(OreDictionary.Refresh);
         }
 
@@ -29,7 +28,7 @@ namespace MoreBetterDeepDrill.Settings
         }
 
         /// <summary>
-        /// 临时获取所有的def
+        /// Cache all defs for the current load.
         /// </summary>
         private void PushToDatabase()
         {
@@ -37,23 +36,22 @@ namespace MoreBetterDeepDrill.Settings
         }
 
         /// <summary>
-        /// 根据筛选条件建立矿辞
+        /// Build the ore dictionary on first load.
         /// </summary>
         private void BuildDictionary()
         {
-            bool flag = ModSetting.oreDictionary == null || ModSetting.oreDictionary.Count <= 0;
-            if (flag)
+            if (ModSetting.oreDictionary == null || ModSetting.oreDictionary.Count <= 0)
             {
                 OreDictionary.Build(false);
                 AddExteraDrillable();
+                oreAmountBuffers.Clear();
             }
         }
 
         private void AddExteraDrillable()
         {
-            // 复用已经缓存的database，避免重复遍历DefDatabase
             List<ThingDef> extraThingList = new List<ThingDef>();
-            foreach (var def in ModSetting.database)
+            foreach (ThingDef def in ModSetting.database)
             {
                 if (def.building != null && (def.building.isResourceRock || def.building.isNaturalRock) && def.mineable)
                     extraThingList.Add(def);
@@ -65,72 +63,81 @@ namespace MoreBetterDeepDrill.Settings
 
         public override void DoSettingsWindowContents(Rect inRect)
         {
-            float y = 0;
+            float y = 0f;
 
-            //是否关闭虫巢
-            y += 40;
+            y += 40f;
             Widgets.Checkbox(0f, y, ref ModSetting.EnableInsectoids, 25f, false, false, null, null);
             Widgets.Label(new Rect(35f, y + 1f, inRect.width - 50f, 25f), "MBDD_Label_EnableInsectoids".Translate());
 
-            //是否启用机械族挖矿
-            y += 40;
+            y += 40f;
             Widgets.Checkbox(0f, y, ref ModSetting.EnableMechdroids, 25f, false, false, null, null);
             Widgets.Label(new Rect(35f, y + 1f, inRect.width - 50f, 25f), "MBDD_Label_EnableMechdroids".Translate());
 
-            //分区文本
-            y += 80;
+            y += 80f;
             Text.Font = GameFont.Medium;
-            Widgets.Label(new Rect(0, y, inRect.width - 50f, 30f), "MBDD_Label_OreListedDisplay".Translate());
+            Widgets.Label(new Rect(0f, y, inRect.width - 50f, 30f), "MBDD_Label_OreListedDisplay".Translate());
 
-            //主动刷新矿物列表
-            y += 40;
+            y += 40f;
             Text.Font = GameFont.Small;
             bool clicked = Widgets.ButtonText(new Rect(0f, y, 290f, 25f), "MBDD_ButtonText_ReBuildOreDictionary".Translate());
             if (clicked)
             {
                 OreDictionary.Build(true);
                 AddExteraDrillable();
+                oreAmountBuffers.Clear();
             }
 
-            if (ModSetting.oreDictionary != null && ModSetting.oreDictionary.Count > 0)
+            List<DrillableOre> oreDictionary = ModSetting.oreDictionary;
+            if (oreDictionary != null && oreDictionary.Count > 0)
             {
-                //滚动条
-                y += 40;
-                Rect outRect = new Rect(0, y, 310f, 300f);
-                Rect rectView = new Rect(0, y, outRect.width - 16f, ModSetting.oreDictionary.Count * 32f);
+                y += 40f;
+                Rect outRect = new Rect(0f, y, 310f, 300f);
+                Rect viewRect = new Rect(0f, 0f, outRect.width - 16f, oreDictionary.Count * 32f);
 
-                Widgets.BeginScrollView(outRect, ref this.scrollPosition, rectView, true);
-                float num = y;
+                Widgets.BeginScrollView(outRect, ref scrollPosition, viewRect, true);
+                float rowY = 0f;
 
-                for (int i = 0; i < ModSetting.oreDictionary.Count; i++)
+                for (int i = 0; i < oreDictionary.Count; i++)
                 {
-                    var ore = ModSetting.oreDictionary;
+                    DrillableOre ore = oreDictionary[i];
+                    if (ore?.OreDef == null)
+                        continue;
 
-                    Rect rectRow = new Rect(0f, num, rectView.width, 32f);
+                    Rect rectRow = new Rect(0f, rowY, viewRect.width, 32f);
                     Rect rectOreIcon = GenUI.LeftPartPixels(rectRow, 32f);
                     Rect rectOreLabel = new Rect(rectRow.x + 35f, rectRow.y + 5f, rectRow.width - 32f, rectRow.height);
                     Rect rectDeepCountPerPortion = new Rect(rectOreLabel.x + 185f, rectRow.y, 65f, rectRow.height);
 
-                    //矿石图标和名称
-                    Widgets.ThingIcon(rectOreIcon, ore[i].OreDef, null, null, 1f, null, null);
-                    Widgets.Label(rectOreLabel, ore[i].OreDef.LabelCap);
+                    Widgets.ThingIcon(rectOreIcon, ore.OreDef, null, null, 1f, null, null);
+                    Widgets.Label(rectOreLabel, ore.OreDef.LabelCap);
 
-                    //每堆数量
-                    string buffer = ore[i].amountPerPortion.ToString();
-                    Widgets.TextFieldNumeric(rectDeepCountPerPortion, ref ore[i].amountPerPortion, ref buffer);
+                    string buffer = GetOreAmountBuffer(ore);
+                    Widgets.TextFieldNumeric(rectDeepCountPerPortion, ref ore.amountPerPortion, ref buffer);
+                    oreAmountBuffers[ore.OreDef.defName] = buffer;
 
-                    //鼠标移入 显示矿石介绍
                     if (Mouse.IsOver(rectRow))
                         Widgets.DrawHighlight(rectRow);
-                    TooltipHandler.TipRegion(rectRow, ore[i].OreDef.description);
+                    TooltipHandler.TipRegion(rectRow, ore.OreDef.description);
 
-                    //每行垂直偏移
-                    num += 32f;
-                    this.scrollViewHeight = num;
+                    rowY += 32f;
                 }
 
                 Widgets.EndScrollView();
             }
+        }
+
+        private string GetOreAmountBuffer(DrillableOre ore)
+        {
+            if (ore?.OreDef == null)
+                return "0";
+
+            if (!oreAmountBuffers.TryGetValue(ore.OreDef.defName, out string buffer) || string.IsNullOrEmpty(buffer))
+            {
+                buffer = ore.amountPerPortion.ToString();
+                oreAmountBuffers[ore.OreDef.defName] = buffer;
+            }
+
+            return buffer;
         }
     }
 }

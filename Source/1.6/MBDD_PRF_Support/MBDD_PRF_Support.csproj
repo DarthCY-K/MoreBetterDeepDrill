@@ -18,7 +18,7 @@
     <DebugSymbols>false</DebugSymbols>
     <DebugType>none</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>..\..\Extension\1.5\ProjectRimFactoryRevived\Assemblies\</OutputPath>
+    <OutputPath>..\..\..\Extension\1.6\ProjectRimFactoryRevived\Assemblies\</OutputPath>
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -45,7 +45,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="MoreBetterDeepDrill">
-      <HintPath>..\..\1.5\Assemblies\MoreBetterDeepDrill.dll</HintPath>
+      <HintPath>..\..\1.6\Assemblies\MoreBetterDeepDrill.dll</HintPath>
       <Private>False</Private>
     </Reference>
     <Reference Include="ProjectRimFactory">

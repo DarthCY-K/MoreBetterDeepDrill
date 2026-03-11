@@ -17,7 +17,8 @@ namespace MoreBetterDeepDrill.Utils
                 if (list[i].Faction != null && list[i].Faction == Faction.OfPlayer)
                 {
                     bool hasComp = list[i].HasComp<Comp.MBDD_CompCreatesInfestations>();
-                    if (hasComp && list[i].TryGetComp<MBDD_CompDeepDrill>().IsDrillingNow)
+                    MBDD_CompDeepDrill drillComp = list[i].TryGetComp<MBDD_CompDeepDrill>();
+                    if (hasComp && drillComp != null && drillComp.IsDrillingNow)
                         outDrills.Add(list[i]);
                 }
             }

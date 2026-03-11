@@ -4,27 +4,26 @@ namespace MoreBetterDeepDrill.Utils
 {
     public static class LogUtil
     {
+        private static bool ShouldLog(bool requireGodMode)
+        {
+            return !requireGodMode || DebugSettings.godMode;
+        }
+
         public static void LogNormal(string msg, bool requireGodMode = true)
         {
-            if (requireGodMode && DebugSettings.godMode)
-                Log.Message(msg);
-            else
+            if (ShouldLog(requireGodMode))
                 Log.Message(msg);
         }
 
         public static void LogWarning(string msg, bool requireGodMode = true)
         {
-            if (requireGodMode && DebugSettings.godMode)
-                Log.Warning(msg);
-            else
+            if (ShouldLog(requireGodMode))
                 Log.Warning(msg);
         }
 
         public static void LogError(string msg, bool requireGodMode = true)
         {
-            if (requireGodMode && DebugSettings.godMode)
-                Log.Error(msg);
-            else
+            if (ShouldLog(requireGodMode))
                 Log.Error(msg);
         }
     }

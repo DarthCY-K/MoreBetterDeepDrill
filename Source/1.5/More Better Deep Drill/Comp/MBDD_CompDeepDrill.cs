@@ -42,7 +42,7 @@ namespace MoreBetterDeepDrill.Comp
 
         protected const float WorkPerPortionBase = 10000f;
 
-        public float ProgressToNextPortionPercent => portionProgress / 10000f;
+        public float ProgressToNextPortionPercent => portionProgress / WorkPerPortionBase;
 
         public List<Pawn> Drillers
         {
@@ -89,6 +89,7 @@ namespace MoreBetterDeepDrill.Comp
 
         public override void PostSpawnSetup(bool respawningAfterLoad)
         {
+            base.PostSpawnSetup(respawningAfterLoad);
             powerComp = parent.TryGetComp<CompPowerTrader>();
         }
 
@@ -119,6 +120,9 @@ namespace MoreBetterDeepDrill.Comp
         /// <param name="driller"></param>
         public virtual void DrillLeaveWork(Pawn driller)
         {
+            if (!drillers.Contains(driller))
+                return;
+
             float statValue = driller.GetStatValue(StatDefOf.DeepDrillingSpeed);
             DrillPower -= statValue;
             drillers.Remove(driller);
@@ -152,9 +156,15 @@ namespace MoreBetterDeepDrill.Comp
 
         public override void PostDeSpawn()
         {
+            base.PostDeSpawn();
             portionProgress = 0f;
             PortionYieldPct = 0f;
+            DrillPower = 0f;
             lastUsedTick = -99999;
+            CanDrillNow = false;
+            drillers.Clear();
+            cachedPawnDeepdrillSpeedDict.Clear();
+            cachedPawnMiningYieldDict.Clear();
         }
 
         protected virtual void TryProducePortion(float yieldPct, Pawn driller = null)
@@ -190,7 +200,7 @@ namespace MoreBetterDeepDrill.Comp
             this.PortionYieldPct += yieldPct;
             this.lastUsedTick = lastUsedTick;
 
-            if (portionProgress > 10000f)
+            if (portionProgress > WorkPerPortionBase)
             {
                 TryProducePortion(PortionYieldPct);
                 portionProgress = 0f;

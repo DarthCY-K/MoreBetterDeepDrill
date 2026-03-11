@@ -19,19 +19,25 @@ namespace MoreBetterDeepDrill.Settings
             Scribe_Values.Look<bool>(ref this.EnableMechdroids, "MBDD_EnableMechdroids", false, false);
             Scribe_Collections.Look<DrillableOre>(ref oreDictionary, "MBDD_OreDictionary", LookMode.Deep, Array.Empty<object>());
 
-            CheckVaild(ref oreDictionary);
+            if (oreDictionary == null)
+                oreDictionary = new List<DrillableOre>();
+
+            CheckValid(oreDictionary);
         }
 
         /// <summary>
         /// 检查并清理无效数据
         /// </summary>
         /// <param name="oreDict"></param>
-        private void CheckVaild(ref List<DrillableOre> oreDict)
+        private static void CheckValid(List<DrillableOre> oreDict)
         {
+            if (oreDict == null)
+                return;
+
             for (int i = oreDict.Count - 1; i >= 0; i--)
             {
-                if (oreDict[i].OreDef == null)
-                    oreDict.Remove(oreDict[i]);
+                if (oreDict[i] == null || oreDict[i].OreDef == null)
+                    oreDict.RemoveAt(i);
             }
         }
     }
