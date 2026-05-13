@@ -92,6 +92,7 @@
     <Compile Include="Utils\DeepDrillUtil.cs" />
     <Compile Include="Utils\InfestationIncidentUtil.cs" />
     <Compile Include="Utils\LogUtil.cs" />
+    <Compile Include="Utils\MapResourceCache.cs" />
     <Compile Include="Utils\OreDictionary.cs" />
     <Compile Include="Utils\StaticValues.cs" />
   </ItemGroup>

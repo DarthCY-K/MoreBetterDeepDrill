@@ -112,6 +112,8 @@ namespace MoreBetterDeepDrill.Comp
             float statValue = driller.GetStatValue(StatDefOf.DeepDrillingSpeed);
             DrillPower += statValue;
             drillers.Add(driller);
+            cachedPawnDeepdrillSpeedDict[driller] = statValue;
+            cachedPawnMiningYieldDict[driller] = driller.GetStatValue(StatDefOf.MiningYield);
         }
 
         /// <summary>
@@ -134,11 +136,8 @@ namespace MoreBetterDeepDrill.Comp
 
             foreach(var pawn in Drillers)
             {
-                float statValueDeepdrillSpeed = 0f;
-                float statValueMingYield = 0f;
-
-                if (cachedPawnDeepdrillSpeedDict != null && cachedPawnDeepdrillSpeedDict.TryGetValue(pawn, out statValueDeepdrillSpeed)
-                    && cachedPawnMiningYieldDict != null && cachedPawnMiningYieldDict.TryGetValue(pawn, out statValueMingYield))
+                if (cachedPawnDeepdrillSpeedDict.TryGetValue(pawn, out float statValueDeepdrillSpeed)
+                    && cachedPawnMiningYieldDict.TryGetValue(pawn, out float statValueMingYield))
                 {
                     PortionYieldPct += statValueDeepdrillSpeed * statValueMingYield * 0.0001f;
                 }
@@ -177,12 +176,10 @@ namespace MoreBetterDeepDrill.Comp
 
         protected virtual void UpdateCachedPawnDrillSpeed()
         {
-            cachedPawnDeepdrillSpeedDict.Clear();
-            cachedPawnMiningYieldDict.Clear();
             foreach (var p in Drillers)
             {
-                cachedPawnDeepdrillSpeedDict.Add(p, p.GetStatValue(StatDefOf.DeepDrillingSpeed));
-                cachedPawnMiningYieldDict.Add(p, p.GetStatValue(StatDefOf.MiningYield));
+                cachedPawnDeepdrillSpeedDict[p] = p.GetStatValue(StatDefOf.DeepDrillingSpeed);
+                cachedPawnMiningYieldDict[p] = p.GetStatValue(StatDefOf.MiningYield);
             }
         }
 

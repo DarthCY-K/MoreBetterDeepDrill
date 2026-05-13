@@ -15,16 +15,15 @@ namespace MoreBetterDeepDrill.Utils
 
         public static bool GetNextResource(IntVec3 p, Map map, out ThingDef resDef, out int countPresent, out IntVec3 cell)
         {
-            foreach (var intVec in map.AllCells)
+            var cache = MapResourceCache.ForMap(map);
+            cache.EnsureBuilt(map);
+
+            if (cache.HasResources)
             {
-                ThingDef thingDef = map.deepResourceGrid.ThingDefAt(intVec);
-                if (thingDef != null)
-                {
-                    resDef = thingDef;
-                    countPresent = map.deepResourceGrid.CountAt(intVec);
-                    cell = intVec;
-                    return true;
-                }
+                cell = cache.firstResourceCell;
+                resDef = cache.firstResourceDef;
+                countPresent = map.deepResourceGrid.CountAt(cell);
+                return true;
             }
 
             resDef = GetBaseResource(map, p);

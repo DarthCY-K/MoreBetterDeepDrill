@@ -110,14 +110,14 @@ namespace MoreBetterDeepDrill.Comp
 
             Messages.Message("DeepDrillExhausted".Translate(Find.ActiveLanguageWorker.Pluralize(baseResource.label)), parent, MessageTypeDefOf.TaskCompletion);
 
-            for (int i = 0; i < 10000; i++)
+            var allBuildings = parent.Map.listerBuildings.allBuildingsColonist;
+            for (int i = 0; i < allBuildings.Count; i++)
             {
-                IntVec3 c = cell + GenRadial.RadialPattern[i];
-                if (c.InBounds(parent.Map))
+                if (allBuildings[i].def == Defs.ThingDefOf.MBDD_RangedDeepDrill)
                 {
-                    ThingWithComps firstThingWithComp = c.GetFirstThingWithComp<MBDD_CompRangedDeepDrill>(parent.Map);
-                    if (firstThingWithComp != null && !firstThingWithComp.GetComp<MBDD_CompRangedDeepDrill>().ValuableResourcesPresent())
-                        firstThingWithComp.SetForbidden(true);
+                    var rangedComp = allBuildings[i].GetComp<MBDD_CompRangedDeepDrill>();
+                    if (rangedComp != null && !rangedComp.ValuableResourcesPresent())
+                        allBuildings[i].SetForbidden(true);
                 }
             }
         }

@@ -37,4 +37,13 @@ namespace MoreBetterDeepDrill.Patch
                 DeepDrillUtil.RenderMouseAttachments(map);
         }
     }
+
+    [HarmonyPatch(typeof(DeepResourceGrid), nameof(DeepResourceGrid.SetAt))]
+    public static class Patch_DeepResourceGrid_SetAt
+    {
+        private static void Prefix(DeepResourceGrid __instance)
+        {
+            MapResourceCache.ForMap(__instance.map).Invalidate();
+        }
+    }
 }
