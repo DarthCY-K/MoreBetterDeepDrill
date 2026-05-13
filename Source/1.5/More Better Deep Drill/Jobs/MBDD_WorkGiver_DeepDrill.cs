@@ -8,6 +8,10 @@ namespace MoreBetterDeepDrill.Jobs
 {
     public class MBDD_WorkGiver_DeepDrill : WorkGiver_Scanner
     {
+        private static int cachedShouldSkipTick = -1;
+        private static int cachedShouldSkipMapId = -1;
+        private static bool cachedShouldSkipResult;
+
         public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial);
 
         public override PathEndMode PathEndMode => PathEndMode.InteractionCell;
@@ -19,9 +23,16 @@ namespace MoreBetterDeepDrill.Jobs
 
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
         {
-            //机械族过滤
             if (pawn.IsColonyMech && !StaticValues.ModSetting.EnableMechdroids)
                 return true;
+
+            int mapId = pawn.Map.uniqueID;
+            int tick = Find.TickManager.TicksGame;
+            if (cachedShouldSkipMapId == mapId && cachedShouldSkipTick == tick)
+                return cachedShouldSkipResult;
+
+            cachedShouldSkipMapId = mapId;
+            cachedShouldSkipTick = tick;
 
             List<Building> allBuildingsColonist = pawn.Map.listerBuildings.allBuildingsColonist;
             for (int i = 0; i < allBuildingsColonist.Count; i++)
@@ -34,11 +45,13 @@ namespace MoreBetterDeepDrill.Jobs
                     CompPowerTrader comp = building.GetComp<CompPowerTrader>();
                     if ((comp == null || comp.PowerOn) && building.Map.designationManager.DesignationOn(building, DesignationDefOf.Uninstall) == null)
                     {
+                        cachedShouldSkipResult = false;
                         return false;
                     }
                 }
             }
 
+            cachedShouldSkipResult = true;
             return true;
         }
 

@@ -10,38 +10,35 @@ namespace MoreBetterDeepDrill.Comp
 {
     public class MBDD_CompRangedDeepDrill : MBDD_CompDeepDrill
     {
-        private const int ResourceScanCacheTicks = 60;
-
         protected DrillableOre selectedOre;
         protected bool targetingOreEnable;
 
-        private int cachedResourceScanTick = -99999;
-        private bool cachedResourceFound;
-        private ThingDef cachedResourceDef;
-        private int cachedResourceCount;
-        private IntVec3 cachedResourceCell = IntVec3.Invalid;
-        private bool cachedTargetingEnabled;
-        private ThingDef cachedTargetOreDef;
+        private DrillableOre cachedSelectedOreEntry;
+        private ThingDef cachedSelectedOreDef;
 
         private DrillableOre SelectedOreEntry
         {
             get
             {
-                if (selectedOre?.OreDef == null)
-                    return null;
+                var currentDef = selectedOre?.OreDef;
+                if (currentDef == cachedSelectedOreDef)
+                    return cachedSelectedOreEntry;
 
-                List<DrillableOre> oreDictionary = StaticValues.ModSetting?.oreDictionary;
+                cachedSelectedOreDef = currentDef;
+                if (currentDef == null)
+                    return cachedSelectedOreEntry = null;
+
+                var oreDictionary = StaticValues.ModSetting?.oreDictionary;
                 if (oreDictionary != null)
                 {
                     for (int i = 0; i < oreDictionary.Count; i++)
                     {
-                        DrillableOre ore = oreDictionary[i];
-                        if (ore?.OreDef == selectedOre.OreDef)
-                            return ore;
+                        if (oreDictionary[i]?.OreDef == currentDef)
+                            return cachedSelectedOreEntry = oreDictionary[i];
                     }
                 }
 
-                return selectedOre;
+                return cachedSelectedOreEntry = selectedOre;
             }
         }
 
@@ -55,7 +52,6 @@ namespace MoreBetterDeepDrill.Comp
         public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
         {
             base.PostDeSpawn(map, mode);
-            InvalidateResourceCache();
         }
 
         protected override void TryProducePortion(float yieldPct, Pawn driller = null)
@@ -87,7 +83,6 @@ namespace MoreBetterDeepDrill.Comp
             if (nextResource)
             {
                 parent.Map.deepResourceGrid.SetAt(cell, resDef, countPresent - num);
-                InvalidateResourceCache();
             }
 
             int stackCount = Mathf.Max(1, GenMath.RoundRandom(num * yieldPct));
@@ -166,7 +161,7 @@ namespace MoreBetterDeepDrill.Comp
                 toggleAction = delegate
                 {
                     targetingOreEnable = !targetingOreEnable;
-                    InvalidateResourceCache();
+                    cachedSelectedOreDef = null;
                 }
             };
 
@@ -189,7 +184,7 @@ namespace MoreBetterDeepDrill.Comp
                             FloatMenuOption floatMenu_selectOre = new FloatMenuOption("MBDD_RangedDeepDrill_FloatMenu_SelectOre".Translate() + ore.OreDef.LabelCap, delegate
                             {
                                 selectedOre = ore;
-                                InvalidateResourceCache();
+                                cachedSelectedOreDef = null;
                             }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
                             floatMenu_selectOre.Disabled = currentSelectedOre?.OreDef == ore.OreDef;
                             floatMenu_selectOre.disabledReason = "MBDD_RangedDeepDrill_FloatMenu_SameOre".Translate();
@@ -234,53 +229,15 @@ namespace MoreBetterDeepDrill.Comp
             ThingDef targetOreDef = targetingOreEnable ? SelectedOreEntry?.OreDef : null;
             if (targetingOreEnable && targetOreDef == null)
             {
-                CacheResourceScan(false, null, int.MaxValue, parent.Position, targetOreDef);
                 resDef = null;
                 countPresent = int.MaxValue;
                 cell = parent.Position;
                 return false;
             }
 
-            int currentTick = Find.TickManager.TicksGame;
-            if (cachedResourceScanTick >= 0
-                && currentTick - cachedResourceScanTick < ResourceScanCacheTicks
-                && cachedTargetingEnabled == targetingOreEnable
-                && cachedTargetOreDef == targetOreDef)
-            {
-                resDef = cachedResourceDef;
-                countPresent = cachedResourceCount;
-                cell = cachedResourceCell;
-                return cachedResourceFound;
-            }
-
-            bool found = targetOreDef != null
+            return targetOreDef != null
                 ? Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell, targetOreDef)
                 : Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell);
-
-            CacheResourceScan(found, resDef, countPresent, cell, targetOreDef);
-            return found;
-        }
-
-        private void CacheResourceScan(bool found, ThingDef resDef, int countPresent, IntVec3 cell, ThingDef targetOreDef)
-        {
-            cachedResourceScanTick = Find.TickManager.TicksGame;
-            cachedResourceFound = found;
-            cachedResourceDef = resDef;
-            cachedResourceCount = countPresent;
-            cachedResourceCell = cell;
-            cachedTargetingEnabled = targetingOreEnable;
-            cachedTargetOreDef = targetOreDef;
-        }
-
-        private void InvalidateResourceCache()
-        {
-            cachedResourceScanTick = -99999;
-            cachedResourceFound = false;
-            cachedResourceDef = null;
-            cachedResourceCount = 0;
-            cachedResourceCell = IntVec3.Invalid;
-            cachedTargetingEnabled = false;
-            cachedTargetOreDef = null;
         }
     }
 }

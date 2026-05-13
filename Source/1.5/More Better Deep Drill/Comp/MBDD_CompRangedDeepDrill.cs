@@ -7,18 +7,9 @@ namespace MoreBetterDeepDrill.Comp
 {
     public class MBDD_CompRangedDeepDrill : MBDD_CompDeepDrill
     {
-        private const int ResourceScanCacheTicks = 60;
-
-        private int cachedResourceScanTick = -99999;
-        private bool cachedResourceFound;
-        private ThingDef cachedResourceDef;
-        private int cachedResourceCount;
-        private IntVec3 cachedResourceCell = IntVec3.Invalid;
-
         public override void PostDeSpawn()
         {
             base.PostDeSpawn();
-            InvalidateResourceCache();
         }
 
         protected override void TryProducePortion(float yieldPct, Pawn driller = null)
@@ -36,7 +27,6 @@ namespace MoreBetterDeepDrill.Comp
             if (nextResource)
             {
                 parent.Map.deepResourceGrid.SetAt(cell, resDef, countPresent - num);
-                InvalidateResourceCache();
             }
 
             int stackCount = Mathf.Max(1, GenMath.RoundRandom(num * yieldPct));
@@ -109,31 +99,7 @@ namespace MoreBetterDeepDrill.Comp
 
         private bool GetNextResource(out ThingDef resDef, out int countPresent, out IntVec3 cell)
         {
-            int currentTick = Find.TickManager.TicksGame;
-            if (cachedResourceScanTick >= 0 && currentTick - cachedResourceScanTick < ResourceScanCacheTicks)
-            {
-                resDef = cachedResourceDef;
-                countPresent = cachedResourceCount;
-                cell = cachedResourceCell;
-                return cachedResourceFound;
-            }
-
-            bool found = Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell);
-            cachedResourceScanTick = currentTick;
-            cachedResourceFound = found;
-            cachedResourceDef = resDef;
-            cachedResourceCount = countPresent;
-            cachedResourceCell = cell;
-            return found;
-        }
-
-        private void InvalidateResourceCache()
-        {
-            cachedResourceScanTick = -99999;
-            cachedResourceFound = false;
-            cachedResourceDef = null;
-            cachedResourceCount = 0;
-            cachedResourceCell = IntVec3.Invalid;
+            return Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell);
         }
     }
 }

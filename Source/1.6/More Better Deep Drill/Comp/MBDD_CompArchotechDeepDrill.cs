@@ -12,25 +12,32 @@ namespace MoreBetterDeepDrill.Comp
     {
         protected DrillableOre selectedOre;
 
+        private DrillableOre cachedSelectedOreEntry;
+        private ThingDef cachedSelectedOreDef;
+
         private DrillableOre SelectedOreEntry
         {
             get
             {
-                if (selectedOre?.OreDef == null)
-                    return null;
+                var currentDef = selectedOre?.OreDef;
+                if (currentDef == cachedSelectedOreDef)
+                    return cachedSelectedOreEntry;
 
-                List<DrillableOre> oreDictionary = StaticValues.ModSetting?.oreDictionary;
+                cachedSelectedOreDef = currentDef;
+                if (currentDef == null)
+                    return cachedSelectedOreEntry = null;
+
+                var oreDictionary = StaticValues.ModSetting?.oreDictionary;
                 if (oreDictionary != null)
                 {
                     for (int i = 0; i < oreDictionary.Count; i++)
                     {
-                        DrillableOre ore = oreDictionary[i];
-                        if (ore?.OreDef == selectedOre.OreDef)
-                            return ore;
+                        if (oreDictionary[i]?.OreDef == currentDef)
+                            return cachedSelectedOreEntry = oreDictionary[i];
                     }
                 }
 
-                return selectedOre;
+                return cachedSelectedOreEntry = selectedOre;
             }
         }
 

@@ -40,6 +40,9 @@ namespace MoreBetterDeepDrill.Comp
 
         protected int lastUsedTick = -99999;
 
+        private int stateCheckCounter;
+        private int speedCheckCounter;
+
         protected const float WorkPerPortionBase = 10000f;
 
         public float ProgressToNextPortionPercent => portionProgress / WorkPerPortionBase;
@@ -66,15 +69,15 @@ namespace MoreBetterDeepDrill.Comp
 
         public override void CompTick()
         {
-            //每300tick（5s）更新一次状态
-            if (Current.Game.tickManager.TicksGame % 300 == 0)
+            if (++stateCheckCounter >= 300)
             {
+                stateCheckCounter = 0;
                 UpdateCanDrillState();
             }
 
-            //每120tick（2s）更新一次状态
-            if (Current.Game.tickManager.TicksGame % 120 == 0)
+            if (++speedCheckCounter >= 120)
             {
+                speedCheckCounter = 0;
                 UpdateCachedPawnDrillSpeed();
             }
 
@@ -128,6 +131,8 @@ namespace MoreBetterDeepDrill.Comp
             float statValue = driller.GetStatValue(StatDefOf.DeepDrillingSpeed);
             DrillPower -= statValue;
             drillers.Remove(driller);
+            cachedPawnDeepdrillSpeedDict.Remove(driller);
+            cachedPawnMiningYieldDict.Remove(driller);
         }
 
         public virtual void DrillWork()
