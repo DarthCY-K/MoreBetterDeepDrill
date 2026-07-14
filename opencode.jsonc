@@ -3,7 +3,7 @@
   "mcp": {
     "RimSageMCP": {
       "type": "remote",
-      "url": "http://114.66.43.182:3000/mcp",
+      "url": "http://127.0.0.1:3000/mcp",
       "enabled": true
     }
   }

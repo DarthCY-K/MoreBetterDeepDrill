@@ -4,6 +4,13 @@
   <MBDD_Label_EnableInsectoids>启用虫灾</MBDD_Label_EnableInsectoids>
   <MBDD_Label_EnableMechdroids>允许机械族钻井</MBDD_Label_EnableMechdroids>
   <MBDD_Label_OreListedDisplay>可钻探矿物和基础产量</MBDD_Label_OreListedDisplay>
-  <MBDD_ButtonText_ReBuildOreDictionary>重建矿物辞典</MBDD_ButtonText_ReBuildOreDictionary>
+  <MBDD_Settings_Gameplay>游戏设置</MBDD_Settings_Gameplay>
+  <MBDD_Desc_EnableInsectoids>允许本模组钻机触发原版深钻虫灾。此开关不影响原版深钻机。</MBDD_Desc_EnableInsectoids>
+  <MBDD_Desc_EnableMechdroids>允许殖民地机械体操作本模组钻机。</MBDD_Desc_EnableMechdroids>
+  <MBDD_Settings_Search>搜索矿物名称或 defName...</MBDD_Settings_Search>
+  <MBDD_Settings_OreCount>显示 {0} / {1} 种矿物</MBDD_Settings_OreCount>
+  <MBDD_Settings_OreColumn>矿物</MBDD_Settings_OreColumn>
+  <MBDD_Settings_YieldColumn>单次产量</MBDD_Settings_YieldColumn>
+  <MBDD_ButtonText_ResetOreDefaults>恢复默认产量</MBDD_ButtonText_ResetOreDefaults>
 
 </LanguageData>

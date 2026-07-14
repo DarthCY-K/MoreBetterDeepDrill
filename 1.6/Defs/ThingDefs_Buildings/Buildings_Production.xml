@@ -41,7 +41,7 @@
     <comps>
       <li Class="CompProperties_Forbiddable"/>
       <li Class="CompProperties_Flickable"/>
-      <li Class="MoreBetterDeepDrill.Comp.MBDD_CompProperties_CreatesInfestations" />
+      <li Class="CompProperties_CreatesInfestations" />
     </comps>
   </ThingDef>
 

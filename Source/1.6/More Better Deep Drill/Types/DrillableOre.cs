@@ -2,11 +2,17 @@
 
 namespace MoreBetterDeepDrill.Types
 {
+    /// <summary>
+    /// 可深钻矿石数据模型。存储矿石类型和每次产出数量。
+    /// 持久化于 Mod 设置中，支持运行时修改。
+    /// </summary>
     public class DrillableOre : IExposable
     {
+        /// <summary>矿石 ThingDef</summary>
         public ThingDef OreDef => thingDef;
         private ThingDef thingDef;
 
+        /// <summary>每次产出的数量</summary>
         public int amountPerPortion;
 
         public DrillableOre()

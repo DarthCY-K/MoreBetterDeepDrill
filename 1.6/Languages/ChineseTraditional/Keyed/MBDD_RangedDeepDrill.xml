@@ -1,13 +1,13 @@
 ﻿<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
   
-  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>啟用定向采掘</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>
-  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>啟用後可以選擇指定礦物進行采掘。如果地圖上不存在指定礦物，則會停止工作，直到指定礦物出現在地圖上。</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>
-  <DeepDrillNoResource_SelectedOre_Null>定向采掘：當前地圖上不存在目標礦物</DeepDrillNoResource_SelectedOre_Null>
+  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>定向開採</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>
+  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>啟用後，可指定要開採的礦物。若目前地圖上沒有該礦物，鑽機會暫停運作，直到再次探測到目標礦物。</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>
+  <DeepDrillNoResource_SelectedOre_Null>定向開採：目前地圖上找不到目標礦物</DeepDrillNoResource_SelectedOre_Null>
 
-  <MBDD_RangedDeepDrill_Gizmo_SelectOre>定向采掘...</MBDD_RangedDeepDrill_Gizmo_SelectOre>
-  <MBDD_RangedDeepDrill_Gizmo_NoOre>沒有可用礦石</MBDD_RangedDeepDrill_Gizmo_NoOre>
-  <MBDD_RangedDeepDrill_FloatMenu_SelectOre>選擇：</MBDD_RangedDeepDrill_FloatMenu_SelectOre>
-  <MBDD_RangedDeepDrill_FloatMenu_SameOre>礦石相同</MBDD_RangedDeepDrill_FloatMenu_SameOre>
+  <MBDD_RangedDeepDrill_Gizmo_SelectOre>選擇目標礦物…</MBDD_RangedDeepDrill_Gizmo_SelectOre>
+  <MBDD_RangedDeepDrill_Gizmo_NoOre>沒有可供開採的礦物</MBDD_RangedDeepDrill_Gizmo_NoOre>
+  <MBDD_RangedDeepDrill_FloatMenu_SelectOre>開採：</MBDD_RangedDeepDrill_FloatMenu_SelectOre>
+  <MBDD_RangedDeepDrill_FloatMenu_SameOre>目前已選取</MBDD_RangedDeepDrill_FloatMenu_SameOre>
 
 </LanguageData>

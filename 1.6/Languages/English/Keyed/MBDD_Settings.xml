@@ -4,6 +4,13 @@
   <MBDD_Label_EnableInsectoids>Enable Insectoids</MBDD_Label_EnableInsectoids>
   <MBDD_Label_EnableMechdroids>Allow Mechdroids Drill</MBDD_Label_EnableMechdroids>
   <MBDD_Label_OreListedDisplay>Drillable Ores and Production Amount</MBDD_Label_OreListedDisplay>
-  <MBDD_ButtonText_ReBuildOreDictionary>Rebuild Ore Dictionary</MBDD_ButtonText_ReBuildOreDictionary>
+  <MBDD_Settings_Gameplay>Gameplay</MBDD_Settings_Gameplay>
+  <MBDD_Desc_EnableInsectoids>Allow More Better Deep Drill machines to trigger the vanilla deep-drill infestation. Vanilla drills are unaffected.</MBDD_Desc_EnableInsectoids>
+  <MBDD_Desc_EnableMechdroids>Allow colony mechs to operate More Better Deep Drill machines.</MBDD_Desc_EnableMechdroids>
+  <MBDD_Settings_Search>Search ore name or defName...</MBDD_Settings_Search>
+  <MBDD_Settings_OreCount>Showing {0} of {1} ores</MBDD_Settings_OreCount>
+  <MBDD_Settings_OreColumn>Ore</MBDD_Settings_OreColumn>
+  <MBDD_Settings_YieldColumn>Yield</MBDD_Settings_YieldColumn>
+  <MBDD_ButtonText_ResetOreDefaults>Restore default yields</MBDD_ButtonText_ResetOreDefaults>
 
 </LanguageData>

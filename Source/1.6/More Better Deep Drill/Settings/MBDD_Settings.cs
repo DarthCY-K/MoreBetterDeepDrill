@@ -5,12 +5,16 @@ using Verse;
 
 namespace MoreBetterDeepDrill.Settings
 {
+    /// <summary>
+    /// Mod 设置数据。持久化矿石字典、虫灾/机械族开关。
+    /// </summary>
     public class MBDD_Settings : ModSettings
     {
+        /// <summary>可深钻矿石列表（构建后缓存）</summary>
         public List<DrillableOre> oreDictionary = null;
-        public List<ThingDef> database;
-
+        /// <summary>是否启用虫灾事件</summary>
         public bool EnableInsectoids = true;
+        /// <summary>是否允许机械体操作钻井</summary>
         public bool EnableMechdroids = false;
 
         public override void ExposeData()
@@ -26,9 +30,9 @@ namespace MoreBetterDeepDrill.Settings
         }
 
         /// <summary>
-        /// 检查并清理无效数据
+        /// 清除矿石字典中的无效条目（null 或 def 丢失）。
+        /// 从尾部向前遍历以避免 RemoveAt 索引偏移。
         /// </summary>
-        /// <param name="oreDict"></param>
         private static void CheckValid(List<DrillableOre> oreDict)
         {
             if (oreDict == null)

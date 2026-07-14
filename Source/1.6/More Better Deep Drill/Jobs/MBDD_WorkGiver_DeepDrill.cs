@@ -6,8 +6,13 @@ using Verse.AI;
 
 namespace MoreBetterDeepDrill.Jobs
 {
+    /// <summary>
+    /// 深钻井工作提供者。为 pawn 分配钻井任务。
+    /// ShouldSkip 使用 tick 级缓存，同一 tick 内多次调用只扫描一次建筑列表。
+    /// </summary>
     public class MBDD_WorkGiver_DeepDrill : WorkGiver_Scanner
     {
+        /// <summary>ShouldSkip 的 tick 级缓存：避免同一 tick 内对每个 pawn 重复扫描建筑列表</summary>
         private static int cachedShouldSkipTick = -1;
         private static int cachedShouldSkipMapId = -1;
         private static bool cachedShouldSkipResult;
@@ -21,6 +26,10 @@ namespace MoreBetterDeepDrill.Jobs
             return Danger.Deadly;
         }
 
+        /// <summary>
+        /// 快速跳过检查。同一 tick 内仅扫描一次建筑列表判断是否存在可用钻机。
+        /// 机械体需 EnableMechdroids 开启后才可操作。
+        /// </summary>
         public override bool ShouldSkip(Pawn pawn, bool forced = false)
         {
             if (pawn.IsColonyMech && !StaticValues.ModSetting.EnableMechdroids)
@@ -55,6 +64,7 @@ namespace MoreBetterDeepDrill.Jobs
             return true;
         }
 
+        /// <summary>判断 pawn 是否可以在指定建筑上工作</summary>
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
             if (t.Faction != pawn.Faction)
@@ -66,7 +76,6 @@ namespace MoreBetterDeepDrill.Jobs
             if (building.IsForbidden(pawn))
                 return false;
 
-            //根据人数分开处理
             if (t.def == Defs.ThingDefOf.MBDD_LargeDeepDrill)
             {
                 if (!pawn.CanReserve(building, 12, 0, null, forced))
@@ -91,6 +100,7 @@ namespace MoreBetterDeepDrill.Jobs
             return true;
         }
 
+        /// <summary>创建钻井 Job：大型钻机多 pawn，普通钻机单 pawn</summary>
         public override Job JobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
             if (t.def == Defs.ThingDefOf.MBDD_LargeDeepDrill)

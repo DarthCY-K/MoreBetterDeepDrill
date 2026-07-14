@@ -8,27 +8,41 @@ using Verse;
 
 namespace MoreBetterDeepDrill.Comp
 {
+    /// <summary>
+    /// 远距深钻井 Comp。继承基础钻井逻辑，增加全图资源扫描和定向采矿功能。
+    /// 通过全局 MapResourceCache 避免重复全图扫描。
+    /// </summary>
     public class MBDD_CompRangedDeepDrill : MBDD_CompDeepDrill
     {
+        /// <summary>用户选择的定向采矿目标</summary>
         protected DrillableOre selectedOre;
+        /// <summary>是否启用定向采矿模式</summary>
         protected bool targetingOreEnable;
 
+        /// <summary>SelectedOreEntry 返回值缓存。以 OreDef 引用为键，selectedOre 变更时失效</summary>
         private DrillableOre cachedSelectedOreEntry;
         private ThingDef cachedSelectedOreDef;
+        private List<DrillableOre> cachedOreDictionary;
 
+        /// <summary>
+        /// 获取 selectedOre 在 oreDictionary 中的当前条目。
+        /// 使用 OreDef 引用缓存，避免每帧遍历 oreDictionary 列表。
+        /// 仅在 selectedOre 变更或首次访问时 O(n) 搜索一次。
+        /// </summary>
         private DrillableOre SelectedOreEntry
         {
             get
             {
                 var currentDef = selectedOre?.OreDef;
-                if (currentDef == cachedSelectedOreDef)
+                var oreDictionary = StaticValues.ModSetting?.oreDictionary;
+                if (currentDef == cachedSelectedOreDef && ReferenceEquals(oreDictionary, cachedOreDictionary))
                     return cachedSelectedOreEntry;
 
                 cachedSelectedOreDef = currentDef;
+                cachedOreDictionary = oreDictionary;
                 if (currentDef == null)
                     return cachedSelectedOreEntry = null;
 
-                var oreDictionary = StaticValues.ModSetting?.oreDictionary;
                 if (oreDictionary != null)
                 {
                     for (int i = 0; i < oreDictionary.Count; i++)
@@ -42,6 +56,7 @@ namespace MoreBetterDeepDrill.Comp
             }
         }
 
+        /// <summary>存档：额外持久化定向采矿状态</summary>
         public override void PostExposeData()
         {
             base.PostExposeData();
@@ -49,11 +64,10 @@ namespace MoreBetterDeepDrill.Comp
             Scribe_Deep.Look(ref selectedOre, "selectedOre");
         }
 
-        public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
-        {
-            base.PostDeSpawn(map, mode);
-        }
-
+        /// <summary>
+        /// 产出矿物。定向模式下先查找指定资源，非定向模式扫描任意资源。
+        /// 资源枯竭时禁用全图同类 Ranged 钻机。
+        /// </summary>
         protected override void TryProducePortion(float yieldPct, Pawn driller = null)
         {
             ThingDef resDef;
@@ -105,6 +119,7 @@ namespace MoreBetterDeepDrill.Comp
 
             Messages.Message("DeepDrillExhausted".Translate(Find.ActiveLanguageWorker.Pluralize(baseResource.label)), parent, MessageTypeDefOf.TaskCompletion);
 
+            // 资源枯竭时，遍历殖民者建筑列表查找同类钻机关闭
             var allBuildings = parent.Map.listerBuildings.allBuildingsColonist;
             for (int i = 0; i < allBuildings.Count; i++)
             {
@@ -117,6 +132,10 @@ namespace MoreBetterDeepDrill.Comp
             }
         }
 
+        /// <summary>
+        /// 每 300 tick 更新钻机可工作状态。
+        /// 有电 + (有基岩资源 或 定向模式找到目标资源) = 可工作
+        /// </summary>
         protected override void UpdateCanDrillState()
         {
             if (powerComp != null && powerComp.PowerOn)
@@ -140,11 +159,13 @@ namespace MoreBetterDeepDrill.Comp
             }
         }
 
+        /// <summary>检查全图是否还有可开采资源</summary>
         public bool ValuableResourcesPresent()
         {
             return GetNextResource(out _, out _, out _);
         }
 
+        /// <summary>Gizmo：定向采矿开关 + 矿石选择菜单</summary>
         public override IEnumerable<Gizmo> CompGetGizmosExtra()
         {
             foreach (Gizmo item in base.CompGetGizmosExtra())
@@ -181,13 +202,15 @@ namespace MoreBetterDeepDrill.Comp
                         while (enumerator.MoveNext())
                         {
                             DrillableOre ore = enumerator.Current;
-                            FloatMenuOption floatMenu_selectOre = new FloatMenuOption("MBDD_RangedDeepDrill_FloatMenu_SelectOre".Translate() + ore.OreDef.LabelCap, delegate
+                            bool isCurrent = currentSelectedOre?.OreDef == ore.OreDef;
+                            string label = "MBDD_RangedDeepDrill_FloatMenu_SelectOre".Translate() + ore.OreDef.LabelCap;
+                            if (isCurrent)
+                                label += " (" + "MBDD_RangedDeepDrill_FloatMenu_SameOre".Translate() + ")";
+                            FloatMenuOption floatMenu_selectOre = new FloatMenuOption(label, isCurrent ? null : (System.Action)(() =>
                             {
                                 selectedOre = ore;
                                 cachedSelectedOreDef = null;
-                            }, MenuOptionPriority.Default, null, null, 0f, null, null, true, 0);
-                            floatMenu_selectOre.Disabled = currentSelectedOre?.OreDef == ore.OreDef;
-                            floatMenu_selectOre.disabledReason = "MBDD_RangedDeepDrill_FloatMenu_SameOre".Translate();
+                            }));
                             list.Add(floatMenu_selectOre);
                         }
                     }
@@ -203,6 +226,7 @@ namespace MoreBetterDeepDrill.Comp
             }
         }
 
+        /// <summary>检视面板信息：显示当前资源类型、进度百分比等</summary>
         public override string CompInspectStringExtra()
         {
             if (!parent.Spawned)
@@ -224,6 +248,10 @@ namespace MoreBetterDeepDrill.Comp
             return "ResourceBelow".Translate() + ": " + resDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0");
         }
 
+        /// <summary>
+        /// 查找下一个可开采资源。定向模式传入 targetOreDef 精确匹配。
+        /// 使用全局 MapResourceCache 查询。
+        /// </summary>
         private bool GetNextResource(out ThingDef resDef, out int countPresent, out IntVec3 cell)
         {
             ThingDef targetOreDef = targetingOreEnable ? SelectedOreEntry?.OreDef : null;

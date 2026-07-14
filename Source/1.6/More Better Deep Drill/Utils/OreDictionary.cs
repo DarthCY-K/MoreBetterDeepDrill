@@ -1,103 +1,96 @@
 using MoreBetterDeepDrill.Types;
-using System;
 using System.Collections.Generic;
 using Verse;
 
 namespace MoreBetterDeepDrill.Utils
 {
-    /// <summary>
-    /// Static ore dictionary.
-    /// </summary>
-    [StaticConstructorOnStartup]
+    /// <summary>自动同步所有可钻矿物，同时保留玩家已经配置的产量。</summary>
     public static class OreDictionary
     {
-        private static Predicate<ThingDef> validOre;
-
-        public static Dictionary<ThingDef, DrillableOre> DrillableOreDict;
-
-        static OreDictionary()
+        public static bool Synchronize()
         {
-            validOre = (ThingDef def) => def.deepCommonality > 0;
-        }
+            var settings = StaticValues.ModSetting;
+            if (settings == null)
+                return false;
 
-        /// <summary>
-        /// Build the ore dictionary.
-        /// </summary>
-        /// <param name="rebuild">Whether to rebuild from scratch.</param>
-        public static void Build(bool rebuild = false)
-        {
-            List<DrillableOre> list = (rebuild || GenList.NullOrEmpty<DrillableOre>(StaticValues.ModSetting.oreDictionary))
-                ? new List<DrillableOre>()
-                : StaticValues.ModSetting.oreDictionary;
-
-            HashSet<ThingDef> existingOreDefs = new HashSet<ThingDef>();
-            for (int i = 0; i < list.Count; i++)
+            List<DrillableOre> current = settings.oreDictionary ?? new List<DrillableOre>();
+            Dictionary<ThingDef, DrillableOre> existing = new Dictionary<ThingDef, DrillableOre>();
+            for (int i = 0; i < current.Count; i++)
             {
-                DrillableOre existingOre = list[i];
-                if (existingOre?.OreDef != null)
-                    existingOreDefs.Add(existingOre.OreDef);
+                DrillableOre ore = current[i];
+                if (ore?.OreDef != null && !existing.ContainsKey(ore.OreDef))
+                    existing.Add(ore.OreDef, ore);
             }
 
-            foreach (ThingDef ore in DefDatabase<ThingDef>.AllDefsListForReading)
+            List<DrillableOre> synchronized = new List<DrillableOre>();
+            HashSet<ThingDef> added = new HashSet<ThingDef>();
+            foreach (ThingDef def in DefDatabase<ThingDef>.AllDefsListForReading)
             {
-                if (!validOre(ore) || !existingOreDefs.Add(ore))
-                    continue;
-
-                LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{ore.defName}] was added to the OreDict.");
-                list.Add(new DrillableOre(ore, ore.deepCountPerPortion));
+                if (def.deepCommonality > 0f)
+                    AddOre(synchronized, added, existing, def, def.deepCountPerPortion);
+            }
+            foreach (ThingDef def in DefDatabase<ThingDef>.AllDefsListForReading)
+            {
+                if (def.building != null && def.mineable
+                    && (def.building.isResourceRock || def.building.isNaturalRock)
+                    && def.building.mineableThing != null && def.building.mineableYield > 0)
+                    AddOre(synchronized, added, existing, def.building.mineableThing, def.building.mineableYield);
             }
 
-            StaticValues.ModSetting.oreDictionary = list;
+            synchronized.Sort((left, right) => string.Compare(left.OreDef.label, right.OreDef.label, System.StringComparison.CurrentCultureIgnoreCase));
+            bool changed = current.Count != synchronized.Count;
+            if (!changed)
+            {
+                for (int i = 0; i < current.Count; i++)
+                {
+                    if (current[i]?.OreDef != synchronized[i].OreDef)
+                    {
+                        changed = true;
+                        break;
+                    }
+                }
+            }
+
+            if (changed)
+                settings.oreDictionary = synchronized;
+            return changed;
         }
 
-        /// <summary>
-        /// Remove invalid entries from the saved list.
-        /// </summary>
-        public static void Refresh()
+        public static void ResetToDefaults()
         {
-            var oreDict = StaticValues.ModSetting.oreDictionary;
-            oreDict?.RemoveAll(ore => ore == null || ore.OreDef == null);
-        }
-
-        /// <summary>
-        /// Add extra drillable defs.
-        /// </summary>
-        /// <param name="defs"></param>
-        public static void AddExtraDrillable(List<ThingDef> defs)
-        {
-            var dict = StaticValues.ModSetting.oreDictionary;
-            if (dict == null)
+            var settings = StaticValues.ModSetting;
+            if (settings == null)
                 return;
 
-            HashSet<ThingDef> existingOreDefs = new HashSet<ThingDef>();
-            foreach (DrillableOre exist in dict)
+            List<DrillableOre> defaults = new List<DrillableOre>();
+            HashSet<ThingDef> added = new HashSet<ThingDef>();
+            Dictionary<ThingDef, DrillableOre> none = new Dictionary<ThingDef, DrillableOre>();
+            foreach (ThingDef def in DefDatabase<ThingDef>.AllDefsListForReading)
             {
-                if (exist?.OreDef != null)
-                    existingOreDefs.Add(exist.OreDef);
+                if (def.deepCommonality > 0f)
+                    AddOre(defaults, added, none, def, def.deepCountPerPortion);
             }
-
-            foreach (ThingDef target in defs)
+            foreach (ThingDef def in DefDatabase<ThingDef>.AllDefsListForReading)
             {
-                ThingDef tempOreDef;
-                int amount = 1;
-
-                if (target.building != null)
-                {
-                    tempOreDef = target.building.mineableThing;
-                    amount = target.building.mineableYield;
-                }
-                else
-                {
-                    tempOreDef = target;
-                }
-
-                // SolidIce has no yield and should not be added as a drill target.
-                if (tempOreDef == null || !existingOreDefs.Add(tempOreDef))
-                    continue;
-
-                LogUtil.LogNormal($"[MoreBetterDeepDrill]: DefName:[{tempOreDef.defName}] was added to the OreDict.");
-                dict.Add(new DrillableOre(tempOreDef, amount));
+                if (def.building != null && def.mineable
+                    && (def.building.isResourceRock || def.building.isNaturalRock)
+                    && def.building.mineableThing != null && def.building.mineableYield > 0)
+                    AddOre(defaults, added, none, def.building.mineableThing, def.building.mineableYield);
             }
+            defaults.Sort((left, right) => string.Compare(left.OreDef.label, right.OreDef.label, System.StringComparison.CurrentCultureIgnoreCase));
+            settings.oreDictionary = defaults;
+        }
+
+        private static void AddOre(List<DrillableOre> target, HashSet<ThingDef> added,
+            Dictionary<ThingDef, DrillableOre> existing, ThingDef oreDef, int defaultAmount)
+        {
+            if (!added.Add(oreDef))
+                return;
+
+            if (existing.TryGetValue(oreDef, out DrillableOre saved))
+                target.Add(saved);
+            else
+                target.Add(new DrillableOre(oreDef, defaultAmount));
         }
     }
 }

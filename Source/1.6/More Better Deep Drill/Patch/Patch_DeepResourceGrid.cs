@@ -5,14 +5,11 @@ using Verse;
 namespace MoreBetterDeepDrill.Patch
 {
     /// <summary>
-    /// 关于DeepResourceGrid.DeepResourcesOnGUI的补丁（为了提供选中显示矿脉的功能）
+    /// DeepResourcesOnGUI 补丁。选中 Ranged 钻机时显示鼠标所在格子的深钻井资源。
     /// </summary>
     [HarmonyPatch(typeof(DeepResourceGrid), nameof(DeepResourceGrid.DeepResourcesOnGUI))]
-    public class Patch_DeepResourceGrid_DeepResourcesOnGUI
+    public static class Patch_DeepResourceGrid_DeepResourcesOnGUI
     {
-        /// <summary>
-        /// Postfix
-        /// </summary>
         private static void Postfix(DeepResourceGrid __instance)
         {
             Thing singleSelectedThing = Find.Selector.SingleSelectedThing;
@@ -22,14 +19,11 @@ namespace MoreBetterDeepDrill.Patch
     }
 
     /// <summary>
-    /// 关于DeepResourceGrid.DrawPlacingMouseAttachments的补丁（为了提供选中显示矿脉的功能）
+    /// DrawPlacingMouseAttachments 补丁。放置 Ranged 钻机时显示鼠标所在格子的深钻井资源。
     /// </summary>
     [HarmonyPatch(typeof(DeepResourceGrid), nameof(DeepResourceGrid.DrawPlacingMouseAttachments))]
-    public class Patch_DeepResourceGrid_DrawPlacingMouseAttachments
+    public static class Patch_DeepResourceGrid_DrawPlacingMouseAttachments
     {
-        /// <summary>
-        /// Postfix
-        /// </summary>
         private static void Postfix(DeepResourceGrid __instance, BuildableDef placingDef)
         {
             var map = Find.CurrentMap;
@@ -38,12 +32,25 @@ namespace MoreBetterDeepDrill.Patch
         }
     }
 
+    /// <summary>
+    /// SetAt 补丁。写入前读取旧值并增量更新全局资源索引。
+    /// </summary>
     [HarmonyPatch(typeof(DeepResourceGrid), nameof(DeepResourceGrid.SetAt))]
     public static class Patch_DeepResourceGrid_SetAt
     {
-        private static void Prefix(DeepResourceGrid __instance)
+        private static void Prefix(Map ___map, IntVec3 c, ThingDef def, int count)
         {
-            MapResourceCache.ForMap(__instance.map).Invalidate();
+            MapResourceCache.ForMap(___map).NotifySetAt(___map, c, def, count);
+        }
+    }
+
+    [HarmonyPatch(typeof(DeepResourceGrid), nameof(DeepResourceGrid.ExposeData))]
+    public static class Patch_DeepResourceGrid_ExposeData
+    {
+        private static void Postfix(Map ___map)
+        {
+            if (Scribe.mode == LoadSaveMode.LoadingVars)
+                MapResourceCache.ForMap(___map).Invalidate();
         }
     }
 }
