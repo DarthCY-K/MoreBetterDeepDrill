@@ -1,4 +1,4 @@
-﻿using MoreBetterDeepDrill.Types;
+using MoreBetterDeepDrill.Types;
 using System;
 using System.Collections.Generic;
 using Verse;
@@ -16,11 +16,14 @@ namespace MoreBetterDeepDrill.Settings
         public bool EnableInsectoids = true;
         /// <summary>是否允许机械体操作钻井</summary>
         public bool EnableMechdroids = false;
+        /// <summary>钻机总挖掘力上限（所有在岗 pawn 深钻速度之和的封顶值）</summary>
+        public float MaxDrillPower = 3f;
 
         public override void ExposeData()
         {
             Scribe_Values.Look<bool>(ref this.EnableInsectoids, "MBDD_EnableInsectoids", true, false);
             Scribe_Values.Look<bool>(ref this.EnableMechdroids, "MBDD_EnableMechdroids", false, false);
+            Scribe_Values.Look<float>(ref this.MaxDrillPower, "MBDD_MaxDrillPower", 3f, false);
             Scribe_Collections.Look<DrillableOre>(ref oreDictionary, "MBDD_OreDictionary", LookMode.Deep, Array.Empty<object>());
 
             if (oreDictionary == null)

@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
   
   <MBDD_Label_EnableInsectoids>Enable Insectoids</MBDD_Label_EnableInsectoids>
@@ -12,5 +12,7 @@
   <MBDD_Settings_OreColumn>Ore</MBDD_Settings_OreColumn>
   <MBDD_Settings_YieldColumn>Yield</MBDD_Settings_YieldColumn>
   <MBDD_ButtonText_ResetOreDefaults>Restore default yields</MBDD_ButtonText_ResetOreDefaults>
+  <MBDD_Label_MaxDrillPower>Max drill power: {0}</MBDD_Label_MaxDrillPower>
+  <MBDD_Desc_MaxDrillPower>Caps the combined drilling speed of all pawns working on one drill. Higher values finish each portion faster, but do not increase the yield per portion.</MBDD_Desc_MaxDrillPower>
 
 </LanguageData>

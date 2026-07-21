@@ -92,7 +92,7 @@ namespace MoreBetterDeepDrill.Comp
             if (resDef == null)
                 return;
 
-            int num = Mathf.Min(countPresent, resDef.deepCountPerPortion);
+            int num = Mathf.Min(countPresent, GetPortionAmount(resDef));
 
             if (nextResource)
             {
@@ -135,10 +135,14 @@ namespace MoreBetterDeepDrill.Comp
         /// <summary>
         /// 每 300 tick 更新钻机可工作状态。
         /// 有电 + (有基岩资源 或 定向模式找到目标资源) = 可工作
+        /// 定向模式下目标资源耗尽（可工作 -> 不可工作）时给玩家一次提示
         /// </summary>
         protected override void UpdateCanDrillState()
         {
-            if (powerComp != null && powerComp.PowerOn)
+            bool wasAbleToDrill = CanDrillNow;
+            bool powered = powerComp == null || powerComp.PowerOn;
+
+            if (powered)
             {
                 if (targetingOreEnable)
                 {
@@ -156,6 +160,12 @@ namespace MoreBetterDeepDrill.Comp
             else
             {
                 CanDrillNow = false;
+            }
+
+            if (wasAbleToDrill && !CanDrillNow && powered && targetingOreEnable && SelectedOreEntry != null)
+            {
+                Messages.Message("MBDD_RangedDeepDrill_TargetOreExhausted".Translate(SelectedOreEntry.OreDef.Named("ORE")),
+                    parent, MessageTypeDefOf.TaskCompletion);
             }
         }
 
@@ -266,6 +276,24 @@ namespace MoreBetterDeepDrill.Comp
             return targetOreDef != null
                 ? Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell, targetOreDef)
                 : Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell);
+        }
+
+        /// <summary>
+        /// 获取指定资源每次产出的数量。优先使用玩家在设置中配置的产量
+        /// （与超凡钻机行为一致），未配置时回退到 def 的 deepCountPerPortion。
+        /// </summary>
+        private static int GetPortionAmount(ThingDef resDef)
+        {
+            var oreDictionary = StaticValues.ModSetting?.oreDictionary;
+            if (oreDictionary != null)
+            {
+                for (int i = 0; i < oreDictionary.Count; i++)
+                {
+                    if (oreDictionary[i]?.OreDef == resDef)
+                        return oreDictionary[i].amountPerPortion;
+                }
+            }
+            return resDef.deepCountPerPortion;
         }
     }
 }

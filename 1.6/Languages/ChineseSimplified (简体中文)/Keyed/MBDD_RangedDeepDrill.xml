@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
   <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>启用定向采掘</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>
@@ -9,5 +9,7 @@
   <MBDD_RangedDeepDrill_Gizmo_NoOre>没有可用矿石</MBDD_RangedDeepDrill_Gizmo_NoOre>
   <MBDD_RangedDeepDrill_FloatMenu_SelectOre>选择：</MBDD_RangedDeepDrill_FloatMenu_SelectOre>
   <MBDD_RangedDeepDrill_FloatMenu_SameOre>矿石相同</MBDD_RangedDeepDrill_FloatMenu_SameOre>
+
+  <MBDD_RangedDeepDrill_TargetOreExhausted>目标矿物（{ORE}）在当前地图上已采空，钻机将停止工作，直到该矿物再次出现。</MBDD_RangedDeepDrill_TargetOreExhausted>
 
 </LanguageData>

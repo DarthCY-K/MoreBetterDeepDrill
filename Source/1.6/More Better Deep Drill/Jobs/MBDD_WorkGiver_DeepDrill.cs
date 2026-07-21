@@ -1,4 +1,4 @@
-﻿using MoreBetterDeepDrill.Utils;
+using MoreBetterDeepDrill.Utils;
 using RimWorld;
 using System.Collections.Generic;
 using Verse;
@@ -67,6 +67,13 @@ namespace MoreBetterDeepDrill.Jobs
         /// <summary>判断 pawn 是否可以在指定建筑上工作</summary>
         public override bool HasJobOnThing(Pawn pawn, Thing t, bool forced = false)
         {
+            // 最廉价的检查放最前：本 WorkGiver 只关心三种钻机
+            bool isLargeDrill = t.def == Defs.ThingDefOf.MBDD_LargeDeepDrill;
+            if (!isLargeDrill
+                && t.def != Defs.ThingDefOf.MBDD_RangedDeepDrill
+                && t.def != Defs.ThingDefOf.MBDD_ArchotechDeepDrill)
+                return false;
+
             if (t.Faction != pawn.Faction)
                 return false;
 
@@ -75,17 +82,6 @@ namespace MoreBetterDeepDrill.Jobs
 
             if (building.IsForbidden(pawn))
                 return false;
-
-            if (t.def == Defs.ThingDefOf.MBDD_LargeDeepDrill)
-            {
-                if (!pawn.CanReserve(building, 12, 0, null, forced))
-                    return false;
-            }
-            else
-            {
-                if (!pawn.CanReserve(building, 1, -1, null, forced))
-                    return false;
-            }
 
             var comp = building.GetComp<Comp.MBDD_CompDeepDrill>();
             if (comp == null || !comp.CanDrillNow)
@@ -97,7 +93,10 @@ namespace MoreBetterDeepDrill.Jobs
             if (building.IsBurning())
                 return false;
 
-            return true;
+            // 预约检查放最后（开销最大）
+            if (isLargeDrill)
+                return pawn.CanReserve(building, 12, 0, null, forced);
+            return pawn.CanReserve(building, 1, -1, null, forced);
         }
 
         /// <summary>创建钻井 Job：大型钻机多 pawn，普通钻机单 pawn</summary>

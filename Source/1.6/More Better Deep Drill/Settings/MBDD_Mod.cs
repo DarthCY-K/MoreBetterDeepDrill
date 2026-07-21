@@ -41,7 +41,7 @@ namespace MoreBetterDeepDrill.Settings
             DrawSectionHeader(new Rect(content.x, y, content.width, 30f), "MBDD_Settings_Gameplay".Translate());
             y += 38f;
 
-            Rect gameplayRect = new Rect(content.x, y, content.width, 86f);
+            Rect gameplayRect = new Rect(content.x, y, content.width, 128f);
             Widgets.DrawBoxSolid(gameplayRect, new Color(0.12f, 0.13f, 0.14f, 0.32f));
             Listing_Standard gameplay = new Listing_Standard();
             gameplay.Begin(gameplayRect.ContractedBy(12f));
@@ -49,6 +49,9 @@ namespace MoreBetterDeepDrill.Settings
                 "MBDD_Desc_EnableInsectoids".Translate());
             gameplay.CheckboxLabeled("MBDD_Label_EnableMechdroids".Translate(), ref ModSetting.EnableMechdroids,
                 "MBDD_Desc_EnableMechdroids".Translate());
+            ModSetting.MaxDrillPower = gameplay.SliderLabeled(
+                "MBDD_Label_MaxDrillPower".Translate(ModSetting.MaxDrillPower.ToString("F1")),
+                ModSetting.MaxDrillPower, 1f, 20f, 0.7f, "MBDD_Desc_MaxDrillPower".Translate());
             gameplay.End();
             y = gameplayRect.yMax + SectionGap;
 

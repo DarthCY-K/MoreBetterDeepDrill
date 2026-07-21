@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
   
   <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>定向開採</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>
@@ -9,5 +9,7 @@
   <MBDD_RangedDeepDrill_Gizmo_NoOre>沒有可供開採的礦物</MBDD_RangedDeepDrill_Gizmo_NoOre>
   <MBDD_RangedDeepDrill_FloatMenu_SelectOre>開採：</MBDD_RangedDeepDrill_FloatMenu_SelectOre>
   <MBDD_RangedDeepDrill_FloatMenu_SameOre>目前已選取</MBDD_RangedDeepDrill_FloatMenu_SameOre>
+
+  <MBDD_RangedDeepDrill_TargetOreExhausted>目標礦物（{ORE}）在目前地圖上已採盡，鑽機將停止運作，直到再次探測到該礦物。</MBDD_RangedDeepDrill_TargetOreExhausted>
 
 </LanguageData>

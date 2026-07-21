@@ -1,4 +1,4 @@
-﻿using MoreBetterDeepDrill.Utils;
+using MoreBetterDeepDrill.Utils;
 using RimWorld;
 using System.Collections.Generic;
 using Verse;
@@ -18,8 +18,8 @@ namespace MoreBetterDeepDrill.Comp
         /// <summary>当前产出周期进度 (tick 累积值)</summary>
         protected float portionProgress = 0;
 
-        /// <summary>测试用最大挖掘力量，后续需要移动到 setting 配置</summary>
-        protected float maxDrillPower = 3f;
+        /// <summary>最大挖掘力量上限，从 Mod 设置读取，默认 3</summary>
+        protected float maxDrillPower => StaticValues.ModSetting?.MaxDrillPower ?? 3f;
 
         /// <summary>当前产出周期的累计产出倍率 (受所有 pawn 采矿速度×产出率影响)</summary>
         public float PortionYieldPct
@@ -66,17 +66,7 @@ namespace MoreBetterDeepDrill.Comp
         public float ProgressToNextPortionPercent => portionProgress / WorkPerPortionBase;
 
         /// <summary>当前在钻井机上工作的 pawn 列表</summary>
-        public List<Pawn> Drillers
-        {
-            get => drillers;
-            set
-            {
-                if (value != drillers)
-                {
-                    drillers = value;
-                }
-            }
-        }
+        public List<Pawn> Drillers => drillers;
 
         protected List<Pawn> drillers = new List<Pawn>();
 
@@ -92,13 +82,15 @@ namespace MoreBetterDeepDrill.Comp
         public bool IsDrillingNow => drillers.Count != 0;
 
         /// <summary>
-        /// 每 tick 执行。使用错峰计数器替代取模，分散多个钻机的检测负载：
+        /// 每 tick 执行。计数器以 thingIDNumber 为初始偏移，真正错开多个钻机的检测时刻：
         /// - 每 300 tick：检查钻机是否可工作
         /// - 每 120 tick：刷新 pawn 速度缓存
         /// - 若可工作且有工人在岗，推进挖掘进度
         /// </summary>
         public override void CompTick()
         {
+            base.CompTick();
+
             if (++stateCheckCounter >= 300)
             {
                 stateCheckCounter = 0;
@@ -111,20 +103,17 @@ namespace MoreBetterDeepDrill.Comp
                 UpdateCachedPawnDrillSpeed();
             }
 
-            if (CanDrillNow)
-            {
-                base.CompTick();
-
-                if (drillers.Count > 0)
-                    DrillWork();
-            }
+            if (CanDrillNow && drillers.Count > 0)
+                DrillWork();
         }
 
-        /// <summary>生成后初始化：缓存电力 Comp 引用</summary>
+        /// <summary>生成后初始化：缓存电力 Comp 引用，并用 thingIDNumber 错开检测计数器初始相位</summary>
         public override void PostSpawnSetup(bool respawningAfterLoad)
         {
             base.PostSpawnSetup(respawningAfterLoad);
             powerComp = parent.TryGetComp<CompPowerTrader>();
+            stateCheckCounter = parent.thingIDNumber % 300;
+            speedCheckCounter = parent.thingIDNumber % 120;
             UpdateCanDrillState();
         }
 
@@ -174,18 +163,21 @@ namespace MoreBetterDeepDrill.Comp
         /// <summary>
         /// 每 tick 推进挖掘进度。累计 DrillPower 到 portionProgress，
         /// 同时根据各 pawn 的深钻速度×采矿产出率累计产量倍率。
+        /// 当总钻速超过 maxDrillPower 上限时，产量累积按同一比例缩放，
+        /// 保证每个产出周期的产量始终约为各 pawn 产出率的加权平均，不随人数膨胀。
         /// 进度达 WorkPerPortionBase 时触发 TryProducePortion 产出。
         /// </summary>
         public virtual void DrillWork()
         {
             portionProgress += DrillPower;
 
+            float yieldScale = drillPower > maxDrillPower ? DrillPower / drillPower : 1f;
             foreach (var pawn in Drillers)
             {
                 if (cachedPawnDeepdrillSpeedDict.TryGetValue(pawn, out float statValueDeepdrillSpeed)
                     && cachedPawnMiningYieldDict.TryGetValue(pawn, out float statValueMingYield))
                 {
-                    PortionYieldPct += statValueDeepdrillSpeed * statValueMingYield * 0.0001f;
+                    PortionYieldPct += statValueDeepdrillSpeed * statValueMingYield * 0.0001f * yieldScale;
                 }
             }
 
@@ -193,7 +185,7 @@ namespace MoreBetterDeepDrill.Comp
 
             if (portionProgress > WorkPerPortionBase)
             {
-                TryProducePortion(PortionYieldPct);
+                TryProducePortion(PortionYieldPct, drillers.Count > 0 ? drillers[drillers.Count - 1] : null);
                 portionProgress = 0f;
                 PortionYieldPct = 0f;
             }

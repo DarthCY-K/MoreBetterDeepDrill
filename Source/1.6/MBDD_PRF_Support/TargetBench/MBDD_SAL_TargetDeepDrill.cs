@@ -1,4 +1,4 @@
-﻿using ProjectRimFactory.AutoMachineTool;
+using ProjectRimFactory.AutoMachineTool;
 using ProjectRimFactory.SAL3;
 using RimWorld;
 using System.Collections.Generic;
@@ -13,6 +13,9 @@ namespace MBDD_PRF_Support.TargetBench
         private Building drilltypeBuilding;
 
         private MBDD_CompDeepDrill compDeepDrill;
+
+        /// <summary>当前目标钻机（只读，供补丁判断是否可复用本目标）</summary>
+        public Building TargetDrill => drilltypeBuilding;
 
         private readonly float[] miningyieldfactors = new float[21]
         {

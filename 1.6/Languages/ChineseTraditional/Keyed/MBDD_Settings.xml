@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
   
   <MBDD_Label_EnableInsectoids>允許觸發深鑽蟲災</MBDD_Label_EnableInsectoids>
@@ -12,5 +12,7 @@
   <MBDD_Settings_OreColumn>礦物</MBDD_Settings_OreColumn>
   <MBDD_Settings_YieldColumn>每批產量</MBDD_Settings_YieldColumn>
   <MBDD_ButtonText_ResetOreDefaults>重設為預設產量</MBDD_ButtonText_ResetOreDefaults>
+  <MBDD_Label_MaxDrillPower>最大挖掘力：{0}</MBDD_Label_MaxDrillPower>
+  <MBDD_Desc_MaxDrillPower>同一台鑽機上所有作業 pawn 深鑽速度總和的上限。數值越高，每批產出完成得越快，但不會提高每批產量。</MBDD_Desc_MaxDrillPower>
 
 </LanguageData>

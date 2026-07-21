@@ -1,4 +1,4 @@
-﻿using RimWorld;
+using RimWorld;
 using System.Collections.Generic;
 using Verse;
 using Verse.AI;
@@ -15,6 +15,9 @@ namespace MoreBetterDeepDrill.Jobs
     {
         private Comp.MBDD_CompDeepDrill drillComp;
 
+        /// <summary>寻路终点模式。单人钻机使用交互格；多人钻机围绕机体站位</summary>
+        protected virtual PathEndMode PathEndMode => PathEndMode.InteractionCell;
+
         public abstract override bool TryMakePreToilReservations(bool errorOnFailed);
 
         protected override IEnumerable<Toil> MakeNewToils()
@@ -26,7 +29,7 @@ namespace MoreBetterDeepDrill.Jobs
             this.FailOnBurningImmobile(TargetIndex.A);
             this.FailOnThingHavingDesignation(TargetIndex.A, DesignationDefOf.Uninstall);
             this.FailOn(() => !drillComp.CanDrillNow);
-            yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode.InteractionCell);
+            yield return Toils_Goto.GotoThing(TargetIndex.A, PathEndMode);
             Toil work = ToilMaker.MakeToil("MakeNewToils");
             work.initAction = delegate
             {
@@ -47,7 +50,7 @@ namespace MoreBetterDeepDrill.Jobs
             });
             work.defaultCompleteMode = ToilCompleteMode.Never;
             work.WithEffect(EffecterDefOf.Drill, TargetIndex.A);
-            work.FailOnCannotTouch(TargetIndex.A, PathEndMode.InteractionCell);
+            work.FailOnCannotTouch(TargetIndex.A, PathEndMode);
             work.FailOnDespawnedNullOrForbidden(TargetIndex.A);
             work.activeSkill = () => SkillDefOf.Mining;
             yield return work;

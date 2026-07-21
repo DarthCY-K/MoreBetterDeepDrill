@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="UTF-8"?>
 <LanguageData>
 
   <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>enable select ore</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>
@@ -9,5 +9,7 @@
   <MBDD_RangedDeepDrill_Gizmo_NoOre>no available ore</MBDD_RangedDeepDrill_Gizmo_NoOre>
   <MBDD_RangedDeepDrill_FloatMenu_SelectOre>select:</MBDD_RangedDeepDrill_FloatMenu_SelectOre>
   <MBDD_RangedDeepDrill_FloatMenu_SameOre>same ore</MBDD_RangedDeepDrill_FloatMenu_SameOre>
+
+  <MBDD_RangedDeepDrill_TargetOreExhausted>The targeted ore ({ORE}) has been exhausted on this map. The drill will stop working until the ore appears again.</MBDD_RangedDeepDrill_TargetOreExhausted>
 
 </LanguageData>
