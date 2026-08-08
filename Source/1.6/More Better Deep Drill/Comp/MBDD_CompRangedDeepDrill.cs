@@ -66,9 +66,9 @@ namespace MoreBetterDeepDrill.Comp
 
         /// <summary>
         /// 产出矿物。定向模式下先查找指定资源，非定向模式扫描任意资源。
-        /// 资源枯竭时禁用全图同类 Ranged 钻机。
+        /// 定向资源枯竭时停止工作；非定向模式自动回退到基岩石块。
         /// </summary>
-        protected override void TryProducePortion(float yieldPct, Pawn driller = null)
+        protected override bool TryProducePortion(float yieldPct, Pawn driller = null)
         {
             ThingDef resDef;
             int countPresent;
@@ -78,11 +78,17 @@ namespace MoreBetterDeepDrill.Comp
             if (targetingOreEnable)
             {
                 if (SelectedOreEntry == null)
-                    return;
+                {
+                    UpdateCanDrillState();
+                    return false;
+                }
 
                 nextResource = GetNextResource(out resDef, out countPresent, out cell);
                 if (!nextResource)
-                    return;
+                {
+                    UpdateCanDrillState();
+                    return false;
+                }
             }
             else
             {
@@ -90,46 +96,54 @@ namespace MoreBetterDeepDrill.Comp
             }
 
             if (resDef == null)
-                return;
-
-            int num = Mathf.Min(countPresent, GetPortionAmount(resDef));
-
-            if (nextResource)
             {
-                parent.Map.deepResourceGrid.SetAt(cell, resDef, countPresent - num);
+                UpdateCanDrillState();
+                return false;
             }
 
+            int num = Mathf.Min(countPresent, GetPortionAmount(resDef));
+            if (num <= 0)
+                return false;
+
             int stackCount = Mathf.Max(1, GenMath.RoundRandom(num * yieldPct));
-            Thing thing = ThingMaker.MakeThing(resDef);
-            thing.stackCount = stackCount;
-            GenPlace.TryPlaceThing(thing, parent.InteractionCell, parent.Map, ThingPlaceMode.Near, null, (IntVec3 p) => p != parent.Position && p != parent.InteractionCell);
+            if (!QueueOutput(resDef, stackCount))
+                return false;
+
+            if (nextResource)
+                parent.Map.deepResourceGrid.SetAt(cell, resDef, countPresent - num);
 
             if (driller != null)
                 Find.HistoryEventsManager.RecordEvent(new HistoryEvent(HistoryEventDefOf.Mined, driller.Named(HistoryEventArgsNames.Doer)));
 
-            if (!nextResource || ValuableResourcesPresent())
-                return;
+            if (!nextResource)
+                return true;
+
+            bool resourceTypeStillPresent = ResourcePresent(resDef);
+            if (!resourceTypeStillPresent)
+                SynchronizeTargetOreExhausted(resDef, targetingOreEnable ? this : null);
+
+            if (targetingOreEnable)
+            {
+                if (resourceTypeStillPresent)
+                    UpdateCanDrillState(false);
+                return true;
+            }
+
+            if (ValuableResourcesPresent())
+                return true;
 
             ThingDef baseResource = DeepDrillUtility.GetBaseResource(parent.Map, parent.Position);
             if (baseResource == null)
             {
-                Messages.Message("DeepDrillExhaustedNoFallback".Translate(), parent, MessageTypeDefOf.TaskCompletion);
-                return;
+                Messages.Message("MBDD_RangedDeepDrill_ResourcesExhaustedNoFallback".Translate(), parent, MessageTypeDefOf.TaskCompletion);
             }
-
-            Messages.Message("DeepDrillExhausted".Translate(Find.ActiveLanguageWorker.Pluralize(baseResource.label)), parent, MessageTypeDefOf.TaskCompletion);
-
-            // 资源枯竭时，遍历殖民者建筑列表查找同类钻机关闭
-            var allBuildings = parent.Map.listerBuildings.allBuildingsColonist;
-            for (int i = 0; i < allBuildings.Count; i++)
+            else
             {
-                if (allBuildings[i].def == Defs.ThingDefOf.MBDD_RangedDeepDrill)
-                {
-                    var rangedComp = allBuildings[i].GetComp<MBDD_CompRangedDeepDrill>();
-                    if (rangedComp != null && !rangedComp.ValuableResourcesPresent())
-                        allBuildings[i].SetForbidden(true);
-                }
+                Messages.Message("MBDD_RangedDeepDrill_ResourcesExhaustedFallback".Translate(baseResource.Named("RESOURCE")), parent, MessageTypeDefOf.TaskCompletion);
             }
+
+            UpdateCanDrillState();
+            return true;
         }
 
         /// <summary>
@@ -139,33 +153,73 @@ namespace MoreBetterDeepDrill.Comp
         /// </summary>
         protected override void UpdateCanDrillState()
         {
-            bool wasAbleToDrill = CanDrillNow;
+            UpdateCanDrillState(true);
+        }
+
+        private void UpdateCanDrillState(bool notifyTargetExhausted)
+        {
+            bool resourceWasAvailable = ResourceAvailable;
             bool powered = powerComp == null || powerComp.PowerOn;
+            bool resourceAvailableNow = CalculateResourceAvailability();
 
-            if (powered)
+            if (notifyTargetExhausted && resourceWasAvailable && !resourceAvailableNow && powered
+                && targetingOreEnable && SelectedOreEntry != null)
             {
-                if (targetingOreEnable)
-                {
-                    CanDrillNow = ValuableResourcesPresent();
-                }
-                else if (Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null)
-                {
-                    CanDrillNow = true;
-                }
-                else
-                {
-                    CanDrillNow = ValuableResourcesPresent();
-                }
-            }
-            else
-            {
-                CanDrillNow = false;
+                SynchronizeTargetOreExhausted(SelectedOreEntry.OreDef, this);
+                return;
             }
 
-            if (wasAbleToDrill && !CanDrillNow && powered && targetingOreEnable && SelectedOreEntry != null)
+            CanDrillNow = resourceAvailableNow;
+        }
+
+        private bool CalculateResourceAvailability()
+        {
+            if (targetingOreEnable)
+                return ValuableResourcesPresent();
+            return Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null || ValuableResourcesPresent();
+        }
+
+        private bool ResourcePresent(ThingDef resourceDef)
+        {
+            return resourceDef != null && Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map,
+                out _, out _, out _, resourceDef);
+        }
+
+        private void SynchronizeTargetOreExhausted(ThingDef exhaustedDef, MBDD_CompRangedDeepDrill preferredMessageSource)
+        {
+            MBDD_CompRangedDeepDrill messageSource = null;
+            if (preferredMessageSource != null)
             {
-                Messages.Message("MBDD_RangedDeepDrill_TargetOreExhausted".Translate(SelectedOreEntry.OreDef.Named("ORE")),
-                    parent, MessageTypeDefOf.TaskCompletion);
+                bool wasAvailable = preferredMessageSource.ResourceAvailable;
+                preferredMessageSource.UpdateCanDrillState(false);
+                if (wasAvailable && !preferredMessageSource.ResourceAvailable
+                    && (preferredMessageSource.powerComp == null || preferredMessageSource.powerComp.PowerOn))
+                {
+                    messageSource = preferredMessageSource;
+                }
+            }
+
+            List<Building> buildings = parent.Map.listerBuildings.allBuildingsColonist;
+            for (int i = 0; i < buildings.Count; i++)
+            {
+                MBDD_CompRangedDeepDrill comp = buildings[i].GetComp<MBDD_CompRangedDeepDrill>();
+                if (comp != null && comp != preferredMessageSource && comp.targetingOreEnable
+                    && comp.SelectedOreEntry?.OreDef == exhaustedDef)
+                {
+                    bool wasAvailable = comp.ResourceAvailable;
+                    comp.UpdateCanDrillState(false);
+                    if (messageSource == null && wasAvailable && !comp.ResourceAvailable
+                        && (comp.powerComp == null || comp.powerComp.PowerOn))
+                    {
+                        messageSource = comp;
+                    }
+                }
+            }
+
+            if (messageSource != null)
+            {
+                Messages.Message("MBDD_RangedDeepDrill_TargetOreExhausted".Translate(exhaustedDef.Named("ORE")),
+                    messageSource.parent, MessageTypeDefOf.TaskCompletion);
             }
         }
 
@@ -193,6 +247,7 @@ namespace MoreBetterDeepDrill.Comp
                 {
                     targetingOreEnable = !targetingOreEnable;
                     cachedSelectedOreDef = null;
+                    UpdateCanDrillState(false);
                 }
             };
 
@@ -220,6 +275,7 @@ namespace MoreBetterDeepDrill.Comp
                             {
                                 selectedOre = ore;
                                 cachedSelectedOreDef = null;
+                                UpdateCanDrillState(false);
                             }));
                             list.Add(floatMenu_selectOre);
                         }
@@ -244,11 +300,15 @@ namespace MoreBetterDeepDrill.Comp
 
             DrillableOre currentSelectedOre = SelectedOreEntry;
             if (targetingOreEnable && currentSelectedOre == null)
-                return "DeepDrillNoResource_SelectedOre_Null".Translate();
+                return "MBDD_RangedDeepDrill_NoTargetSelected".Translate();
 
             GetNextResource(out ThingDef resDef, out _, out _);
             if (resDef == null)
+            {
+                if (targetingOreEnable && currentSelectedOre != null)
+                    return "MBDD_RangedDeepDrill_TargetOreUnavailable".Translate(currentSelectedOre.OreDef.Named("ORE"));
                 return "DeepDrillNoResources".Translate();
+            }
 
             if (DebugSettings.ShowDevGizmos)
             {
@@ -290,10 +350,10 @@ namespace MoreBetterDeepDrill.Comp
                 for (int i = 0; i < oreDictionary.Count; i++)
                 {
                     if (oreDictionary[i]?.OreDef == resDef)
-                        return oreDictionary[i].amountPerPortion;
+                        return Mathf.Max(MBDD_Settings.MinOreAmount, oreDictionary[i].amountPerPortion);
                 }
             }
-            return resDef.deepCountPerPortion;
+            return Mathf.Max(MBDD_Settings.MinOreAmount, resDef.deepCountPerPortion);
         }
     }
 }

@@ -64,33 +64,32 @@ namespace MoreBetterDeepDrill.Comp
         /// 产出矿物。直接从 SelectedOreEntry 获取矿石种类和数量，
         /// 不消耗地图深钻井资源格子。
         /// </summary>
-        protected override void TryProducePortion(float yieldPct, Pawn driller = null)
+        protected override bool TryProducePortion(float yieldPct, Pawn driller = null)
         {
             DrillableOre oreToProduce = SelectedOreEntry;
             if (oreToProduce == null)
             {
                 Messages.Message("DeepDrillExhaustedNoFallback".Translate(), parent, MessageTypeDefOf.TaskCompletion);
-                return;
+                UpdateCanDrillState();
+                return false;
             }
 
-            Thing thing = ThingMaker.MakeThing(oreToProduce.OreDef);
-            thing.stackCount = Mathf.Max(1, GenMath.RoundRandom(oreToProduce.amountPerPortion * yieldPct));
-            GenPlace.TryPlaceThing(thing, parent.InteractionCell, parent.Map, ThingPlaceMode.Near, null, (IntVec3 p) => p != parent.Position && p != parent.InteractionCell);
+            int amount = Mathf.Max(MBDD_Settings.MinOreAmount, oreToProduce.amountPerPortion);
+            int stackCount = Mathf.Max(1, GenMath.RoundRandom(amount * yieldPct));
+            if (!QueueOutput(oreToProduce.OreDef, stackCount))
+                return false;
+
             if (driller != null)
             {
                 Find.HistoryEventsManager.RecordEvent(new HistoryEvent(HistoryEventDefOf.Mined, driller.Named(HistoryEventArgsNames.Doer)));
             }
+            return true;
         }
 
         /// <summary>钻机可工作条件：通电 + 选中了有效矿石</summary>
         protected override void UpdateCanDrillState()
         {
-            if (powerComp != null && !powerComp.PowerOn)
-                CanDrillNow = false;
-            else if (SelectedOreEntry == null)
-                CanDrillNow = false;
-            else
-                CanDrillNow = true;
+            CanDrillNow = SelectedOreEntry != null;
         }
 
         /// <summary>Gizmo：矿石选择 FloatMenu</summary>
@@ -119,7 +118,12 @@ namespace MoreBetterDeepDrill.Comp
                         string label = "MBDD_ArchotechDeepDrill_FloatMenu_SelectOre".Translate() + ore.OreDef.LabelCap;
                         if (isCurrent)
                             label += " (" + "MBDD_ArchotechDeepDrill_FloatMenu_SameOre".Translate() + ")";
-                        FloatMenuOption floatMenu_selectOre = new FloatMenuOption(label, isCurrent ? null : (System.Action)(() => selectedOre = ore));
+                        FloatMenuOption floatMenu_selectOre = new FloatMenuOption(label, isCurrent ? null : (System.Action)(() =>
+                        {
+                            selectedOre = ore;
+                            cachedSelectedOreDef = null;
+                            UpdateCanDrillState();
+                        }));
                         list.Add(floatMenu_selectOre);
                     }
                 }

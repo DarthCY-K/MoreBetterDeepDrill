@@ -13,8 +13,10 @@ namespace MoreBetterDeepDrill.Patch
         private static void Postfix(DeepResourceGrid __instance)
         {
             Thing singleSelectedThing = Find.Selector.SingleSelectedThing;
-            if (singleSelectedThing != null && singleSelectedThing.TryGetComp<Comp.MBDD_CompRangedDeepDrill>() != null)
-                DeepDrillUtil.RenderMouseAttachments(singleSelectedThing.MapHeld);
+            Map map = singleSelectedThing?.MapHeld;
+            if (map != null && singleSelectedThing.TryGetComp<Comp.MBDD_CompRangedDeepDrill>() != null
+                && map.deepResourceGrid.AnyActiveDeepScannersOnMap())
+                DeepDrillUtil.RenderMouseAttachments(map);
         }
     }
 
@@ -27,20 +29,22 @@ namespace MoreBetterDeepDrill.Patch
         private static void Postfix(DeepResourceGrid __instance, BuildableDef placingDef)
         {
             var map = Find.CurrentMap;
-            if (placingDef is ThingDef thingDef && thingDef.CompDefFor<Comp.MBDD_CompRangedDeepDrill>() != null && DeepDrillUtil.AnyActiveDeepScannersOnMap(map))
+            if (map != null && placingDef is ThingDef thingDef && thingDef.CompDefFor<Comp.MBDD_CompRangedDeepDrill>() != null
+                && map.deepResourceGrid.AnyActiveDeepScannersOnMap())
                 DeepDrillUtil.RenderMouseAttachments(map);
         }
     }
 
     /// <summary>
-    /// SetAt 补丁。写入前读取旧值并增量更新全局资源索引。
+    /// SetAt 补丁。原方法完成后根据最终网格值同步全局资源索引。
     /// </summary>
     [HarmonyPatch(typeof(DeepResourceGrid), nameof(DeepResourceGrid.SetAt))]
     public static class Patch_DeepResourceGrid_SetAt
     {
-        private static void Prefix(Map ___map, IntVec3 c, ThingDef def, int count)
+        [HarmonyPriority(Priority.Last)]
+        private static void Postfix(Map ___map, IntVec3 c)
         {
-            MapResourceCache.ForMap(___map).NotifySetAt(___map, c, def, count);
+            MapResourceCache.ForMap(___map).NotifySetAt(___map, c);
         }
     }
 

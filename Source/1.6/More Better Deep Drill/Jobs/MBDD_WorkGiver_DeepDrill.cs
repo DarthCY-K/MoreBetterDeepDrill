@@ -17,9 +17,16 @@ namespace MoreBetterDeepDrill.Jobs
         private static int cachedShouldSkipMapId = -1;
         private static bool cachedShouldSkipResult;
 
-        public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForGroup(ThingRequestGroup.BuildingArtificial);
+        public override ThingRequest PotentialWorkThingRequest => ThingRequest.ForUndefined();
 
-        public override PathEndMode PathEndMode => PathEndMode.InteractionCell;
+        // Touch is the broad scanner mode needed by the 3x3 drill. HasJobOnThing performs the
+        // exact per-def reachability check before a target can be selected.
+        public override PathEndMode PathEndMode => PathEndMode.Touch;
+
+        public override IEnumerable<Thing> PotentialWorkThingsGlobal(Pawn pawn)
+        {
+            return DrillsOnMap(pawn.Map);
+        }
 
         public override Danger MaxPathDanger(Pawn pawn)
         {
@@ -43,16 +50,13 @@ namespace MoreBetterDeepDrill.Jobs
             cachedShouldSkipMapId = mapId;
             cachedShouldSkipTick = tick;
 
-            List<Building> allBuildingsColonist = pawn.Map.listerBuildings.allBuildingsColonist;
-            for (int i = 0; i < allBuildingsColonist.Count; i++)
+            foreach (Thing thing in DrillsOnMap(pawn.Map))
             {
-                Building building = allBuildingsColonist[i];
-                if (building.def == Defs.ThingDefOf.MBDD_RangedDeepDrill
-                    || building.def == Defs.ThingDefOf.MBDD_LargeDeepDrill
-                    || building.def == Defs.ThingDefOf.MBDD_ArchotechDeepDrill)
+                if (thing is Building building && building.Faction == pawn.Faction)
                 {
-                    CompPowerTrader comp = building.GetComp<CompPowerTrader>();
-                    if ((comp == null || comp.PowerOn) && building.Map.designationManager.DesignationOn(building, DesignationDefOf.Uninstall) == null)
+                    var comp = building.GetComp<Comp.MBDD_CompDeepDrill>();
+                    if (comp != null && comp.CanDrillNow
+                        && building.Map.designationManager.DesignationOn(building, DesignationDefOf.Uninstall) == null)
                     {
                         cachedShouldSkipResult = false;
                         return false;
@@ -62,6 +66,16 @@ namespace MoreBetterDeepDrill.Jobs
 
             cachedShouldSkipResult = true;
             return true;
+        }
+
+        private static IEnumerable<Thing> DrillsOnMap(Map map)
+        {
+            foreach (Thing thing in map.listerThings.ThingsOfDef(Defs.ThingDefOf.MBDD_RangedDeepDrill))
+                yield return thing;
+            foreach (Thing thing in map.listerThings.ThingsOfDef(Defs.ThingDefOf.MBDD_LargeDeepDrill))
+                yield return thing;
+            foreach (Thing thing in map.listerThings.ThingsOfDef(Defs.ThingDefOf.MBDD_ArchotechDeepDrill))
+                yield return thing;
         }
 
         /// <summary>判断 pawn 是否可以在指定建筑上工作</summary>
@@ -91,6 +105,10 @@ namespace MoreBetterDeepDrill.Jobs
                 return false;
 
             if (building.IsBurning())
+                return false;
+
+            PathEndMode requiredPathEndMode = isLargeDrill ? PathEndMode.Touch : PathEndMode.InteractionCell;
+            if (!pawn.CanReach(building, requiredPathEndMode, MaxPathDanger(pawn)))
                 return false;
 
             // 预约检查放最后（开销最大）

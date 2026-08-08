@@ -37,8 +37,11 @@ namespace MoreBetterDeepDrill.Jobs
             };
             work.tickAction = delegate
             {
-                this.pawn.rotationTracker.FaceCell(GenAdj.OccupiedRect(this.TargetA.Thing).ClosestCellTo(this.pawn.Position));
                 Pawn actor = work.actor;
+                // JobDriver toils are reconstructed after loading, but their initAction is not
+                // rerun for an already-active toil. Joining here is idempotent and repairs it.
+                drillComp.DrillJoinWork(actor);
+                this.pawn.rotationTracker.FaceCell(GenAdj.OccupiedRect(this.TargetA.Thing).ClosestCellTo(this.pawn.Position));
 
                 if (actor.skills != null)
                     actor.skills.Learn(SkillDefOf.Mining, 0.065f);

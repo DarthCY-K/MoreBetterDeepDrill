@@ -1,6 +1,7 @@
 using MoreBetterDeepDrill.Utils;
 using RimWorld;
 using System.Collections.Generic;
+using UnityEngine;
 using Verse;
 
 namespace MoreBetterDeepDrill.Comp
@@ -54,6 +55,12 @@ namespace MoreBetterDeepDrill.Comp
         /// <summary>上次被使用的 tick。用于判断钻机是否活跃</summary>
         protected int lastUsedTick = -99999;
 
+        /// <summary>Output that has been produced but could not yet be placed near the drill.</summary>
+        private ThingDef pendingOutputDef;
+        private int pendingOutputCount;
+        private bool pendingOutputBlocked;
+        private bool pendingOutputBlockedMessageSent;
+
         /// <summary>状态检测计数器（每 300 tick 触发 UpdateCanDrillState）</summary>
         private int stateCheckCounter;
         /// <summary>速度缓存计数器（每 120 tick 触发 UpdateCachedPawnDrillSpeed）</summary>
@@ -61,6 +68,7 @@ namespace MoreBetterDeepDrill.Comp
 
         /// <summary>每次产出所需的基础工作量 (tick)</summary>
         protected const float WorkPerPortionBase = 10000f;
+        private const int OutputStacksPerPlacementAttempt = 8;
 
         /// <summary>当前产出进度百分比 (0~1)</summary>
         public float ProgressToNextPortionPercent => portionProgress / WorkPerPortionBase;
@@ -75,8 +83,18 @@ namespace MoreBetterDeepDrill.Comp
         /// <summary>pawn 采矿产出率缓存。用于计算产出倍率，每 120 tick 刷新</summary>
         protected Dictionary<Pawn, float> cachedPawnMiningYieldDict = new Dictionary<Pawn, float>();
 
-        /// <summary>钻机当前是否可以工作（由 UpdateCanDrillState 更新）</summary>
-        public bool CanDrillNow;
+        /// <summary>Resource state cached by UpdateCanDrillState.</summary>
+        protected bool ResourceAvailable { get; private set; }
+
+        /// <summary>
+        /// Whether the drill can work. Power is checked live so a power cut cannot use a stale
+        /// periodic resource-state cache.
+        /// </summary>
+        public bool CanDrillNow
+        {
+            get => ResourceAvailable && pendingOutputCount <= 0 && (powerComp == null || powerComp.PowerOn);
+            protected set => ResourceAvailable = value;
+        }
 
         /// <summary>是否有 pawn 正在钻机上工作</summary>
         public bool IsDrillingNow => drillers.Count != 0;
@@ -103,6 +121,16 @@ namespace MoreBetterDeepDrill.Comp
                 UpdateCachedPawnDrillSpeed();
             }
 
+            if (pendingOutputCount > 0)
+            {
+                if (!pendingOutputBlocked || parent.IsHashIntervalTick(60))
+                {
+                    pendingOutputBlocked = !TryPlacePendingOutput();
+                    NotifyPendingOutputBlocked();
+                }
+                return;
+            }
+
             if (CanDrillNow && drillers.Count > 0)
                 DrillWork();
         }
@@ -114,6 +142,8 @@ namespace MoreBetterDeepDrill.Comp
             powerComp = parent.TryGetComp<CompPowerTrader>();
             stateCheckCounter = parent.thingIDNumber % 300;
             speedCheckCounter = parent.thingIDNumber % 120;
+            if (pendingOutputCount > 0)
+                pendingOutputBlocked = false;
             UpdateCanDrillState();
         }
 
@@ -123,6 +153,21 @@ namespace MoreBetterDeepDrill.Comp
             Scribe_Values.Look(ref portionProgress, "portionProgress", 0f);
             Scribe_Values.Look(ref portionYieldPct, "portionYieldPct", 0f);
             Scribe_Values.Look(ref lastUsedTick, "lastUsedTick", 0);
+            Scribe_Defs.Look(ref pendingOutputDef, "pendingOutputDef");
+            Scribe_Values.Look(ref pendingOutputCount, "pendingOutputCount", 0);
+
+            if (Scribe.mode == LoadSaveMode.PostLoadInit && (pendingOutputDef == null || pendingOutputCount <= 0))
+            {
+                pendingOutputDef = null;
+                pendingOutputCount = 0;
+            }
+        }
+
+        public override void ReceiveCompSignal(string signal)
+        {
+            base.ReceiveCompSignal(signal);
+            if (parent.Spawned && (signal == CompPowerTrader.PowerTurnedOnSignal || signal == CompPowerTrader.PowerTurnedOffSignal))
+                UpdateCanDrillState();
         }
 
         /// <summary>
@@ -183,15 +228,21 @@ namespace MoreBetterDeepDrill.Comp
 
             lastUsedTick = Find.TickManager.TicksGame;
 
-            if (portionProgress > WorkPerPortionBase)
+            if (portionProgress >= WorkPerPortionBase)
             {
-                TryProducePortion(PortionYieldPct, drillers.Count > 0 ? drillers[drillers.Count - 1] : null);
-                portionProgress = 0f;
-                PortionYieldPct = 0f;
+                if (TryProducePortion(PortionYieldPct, drillers.Count > 0 ? drillers[drillers.Count - 1] : null))
+                {
+                    portionProgress = 0f;
+                    PortionYieldPct = 0f;
+                }
+                else
+                {
+                    portionProgress = WorkPerPortionBase;
+                }
             }
         }
 
-        /// <summary>移除/销毁时重置所有状态</summary>
+        /// <summary>移除/销毁时重置工作状态；已完成但未落地的产物保留到重新安装后继续投放</summary>
         public override void PostDeSpawn(Map map, DestroyMode mode = DestroyMode.Vanish)
         {
             base.PostDeSpawn(map, mode);
@@ -210,8 +261,68 @@ namespace MoreBetterDeepDrill.Comp
         /// </summary>
         /// <param name="yieldPct">产出倍率 (0~1+，受 pawn 技能和产出率影响)</param>
         /// <param name="driller">触发产出的 pawn（可能为 null）</param>
-        protected virtual void TryProducePortion(float yieldPct, Pawn driller = null)
-        { }
+        protected virtual bool TryProducePortion(float yieldPct, Pawn driller = null)
+        {
+            return false;
+        }
+
+        /// <summary>
+        /// Queues a completed output portion and places as much of it as nearby cells permit.
+        /// Any remainder is saved and retried before more drilling work can accumulate.
+        /// </summary>
+        protected bool QueueOutput(ThingDef def, int count)
+        {
+            if (def == null || count <= 0 || pendingOutputCount > 0)
+                return false;
+
+            pendingOutputDef = def;
+            pendingOutputCount = count;
+            pendingOutputBlocked = !TryPlacePendingOutput();
+            NotifyPendingOutputBlocked();
+            return true;
+        }
+
+        /// <returns>True when the whole attempted batch was placed; more queued batches may remain.</returns>
+        private bool TryPlacePendingOutput()
+        {
+            if (!parent.Spawned || pendingOutputDef == null || pendingOutputCount <= 0)
+                return false;
+
+            int stackLimit = Mathf.Max(1, pendingOutputDef.stackLimit);
+            int placementLimit = stackLimit > int.MaxValue / OutputStacksPerPlacementAttempt
+                ? int.MaxValue
+                : stackLimit * OutputStacksPerPlacementAttempt;
+            int attemptCount = Mathf.Min(pendingOutputCount, placementLimit);
+            Thing thing = ThingMaker.MakeThing(pendingOutputDef);
+            thing.stackCount = attemptCount;
+            CellRect occupiedRect = GenAdj.OccupiedRect(parent);
+            bool fullyPlaced = GenPlace.TryPlaceThing(thing, parent.InteractionCell, parent.Map, ThingPlaceMode.Near,
+                null, cell => cell != parent.InteractionCell && !occupiedRect.Contains(cell));
+
+            int unplacedCount = fullyPlaced ? 0 : thing.stackCount;
+            pendingOutputCount -= attemptCount - unplacedCount;
+            if (pendingOutputCount <= 0)
+            {
+                pendingOutputDef = null;
+                pendingOutputCount = 0;
+                pendingOutputBlocked = false;
+                pendingOutputBlockedMessageSent = false;
+            }
+
+            return fullyPlaced;
+        }
+
+        private void NotifyPendingOutputBlocked()
+        {
+            if (!pendingOutputBlocked || pendingOutputBlockedMessageSent
+                || pendingOutputDef == null || pendingOutputCount <= 0)
+                return;
+
+            pendingOutputBlockedMessageSent = true;
+            Messages.Message("MBDD_DeepDrill_OutputBlocked".Translate(
+                pendingOutputDef.Named("RESOURCE"), pendingOutputCount.Named("COUNT")),
+                parent, MessageTypeDefOf.CautionInput);
+        }
 
         /// <summary>检查钻机是否可以工作，由子类重写</summary>
         protected virtual void UpdateCanDrillState()
@@ -249,11 +360,17 @@ namespace MoreBetterDeepDrill.Comp
             this.PortionYieldPct += yieldPct;
             this.lastUsedTick = lastUsedTick;
 
-            if (portionProgress > WorkPerPortionBase)
+            if (portionProgress >= WorkPerPortionBase)
             {
-                TryProducePortion(PortionYieldPct);
-                portionProgress = 0f;
-                PortionYieldPct = 0f;
+                if (TryProducePortion(PortionYieldPct))
+                {
+                    portionProgress = 0f;
+                    PortionYieldPct = 0f;
+                }
+                else
+                {
+                    portionProgress = WorkPerPortionBase;
+                }
             }
         }
 

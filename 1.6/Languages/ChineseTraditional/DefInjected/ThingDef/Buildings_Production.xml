@@ -2,10 +2,10 @@
 <LanguageData>
   
   <MBDD_RangedDeepDrill.label>廣域深鑽機</MBDD_RangedDeepDrill.label>
-  <MBDD_RangedDeepDrill.description>可開採整張地圖上所有深層資源的大型鑽機。必須先使用地底掃描儀探測地下礦藏；若地圖上已無深層資源，仍可持續產出石塊。可自由拆卸並重新安裝。</MBDD_RangedDeepDrill.description>
+  <MBDD_RangedDeepDrill.description>可開採整張地圖上所有深層資源的大型鑽機。必須先使用地底掃描儀探測地下礦藏；深層資源耗盡後，只要當地存在基岩石材，鑽機仍可持續產出石塊。可自由拆卸並重新安裝。</MBDD_RangedDeepDrill.description>
   
   <MBDD_LargeDeepDrill.label>大型廣域深鑽機</MBDD_LargeDeepDrill.label>
-  <MBDD_LargeDeepDrill.description>廣域深鑽機的大型版本，最多可由 12 名殖民者同時操作，並能開採整張地圖上的深層資源。必須先使用地底掃描儀探測地下礦藏；若地圖上已無深層資源，仍可持續產出石塊。可自由拆卸並重新安裝。</MBDD_LargeDeepDrill.description>
+  <MBDD_LargeDeepDrill.description>廣域深鑽機的大型版本，最多可由 12 名殖民者同時操作，並能開採整張地圖上的深層資源。必須先使用地底掃描儀探測地下礦藏；深層資源耗盡後，只要當地存在基岩石材，鑽機仍可持續產出石塊。可自由拆卸並重新安裝。</MBDD_LargeDeepDrill.description>
 
   <MBDD_ArchotechDeepDrill.label>超凡科技深鑽機</MBDD_ArchotechDeepDrill.label>
   <MBDD_ArchotechDeepDrill.description>由超凡科技打造的深層鑽機，能從虛空中產出指定資源。可自由拆卸並重新安裝。</MBDD_ArchotechDeepDrill.description>

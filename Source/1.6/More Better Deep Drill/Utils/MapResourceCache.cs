@@ -14,6 +14,7 @@ namespace MoreBetterDeepDrill.Utils
 
         private readonly SortedSet<int> allResourceIndices = new SortedSet<int>();
         private readonly Dictionary<ThingDef, SortedSet<int>> indicesByDef = new Dictionary<ThingDef, SortedSet<int>>();
+        private readonly Dictionary<int, ThingDef> resourceDefsByIndex = new Dictionary<int, ThingDef>();
         private bool built;
 
         public static MapResourceCache ForMap(Map map)
@@ -24,49 +25,70 @@ namespace MoreBetterDeepDrill.Utils
         public bool TryGetAny(Map map, out ThingDef def, out int count, out IntVec3 cell)
         {
             EnsureBuilt(map);
-            if (allResourceIndices.Count == 0)
+            while (allResourceIndices.Count > 0)
             {
-                def = null;
-                count = 0;
-                cell = IntVec3.Invalid;
-                return false;
+                int index = allResourceIndices.Min;
+                cell = map.cellIndices.IndexToCell(index);
+                def = map.deepResourceGrid.ThingDefAt(cell);
+                count = map.deepResourceGrid.CountAt(cell);
+                if (def != null && count > 0)
+                {
+                    SynchronizeIndex(index, def, count);
+                    return true;
+                }
+
+                SynchronizeIndex(index, def, count);
             }
 
-            cell = map.cellIndices.IndexToCell(allResourceIndices.Min);
-            def = map.deepResourceGrid.ThingDefAt(cell);
-            count = map.deepResourceGrid.CountAt(cell);
-            return true;
+            def = null;
+            count = 0;
+            cell = IntVec3.Invalid;
+            return false;
         }
 
         public bool TryGet(Map map, ThingDef targetDef, out int count, out IntVec3 cell)
         {
             EnsureBuilt(map);
-            if (targetDef == null || !indicesByDef.TryGetValue(targetDef, out var indices) || indices.Count == 0)
+            if (targetDef == null || !indicesByDef.TryGetValue(targetDef, out var indices))
             {
                 count = 0;
                 cell = IntVec3.Invalid;
                 return false;
             }
 
-            cell = map.cellIndices.IndexToCell(indices.Min);
-            count = map.deepResourceGrid.CountAt(cell);
-            return true;
+            while (indices.Count > 0)
+            {
+                int index = indices.Min;
+                cell = map.cellIndices.IndexToCell(index);
+                ThingDef actualDef = map.deepResourceGrid.ThingDefAt(cell);
+                count = map.deepResourceGrid.CountAt(cell);
+                if (actualDef == targetDef && count > 0)
+                    return true;
+
+                indices.Remove(index);
+                if (indices.Count == 0 && indicesByDef.TryGetValue(targetDef, out SortedSet<int> currentIndices)
+                    && ReferenceEquals(indices, currentIndices))
+                {
+                    indicesByDef.Remove(targetDef);
+                }
+                SynchronizeIndex(index, actualDef, count);
+            }
+
+            count = 0;
+            cell = IntVec3.Invalid;
+            return false;
         }
 
-        /// <summary>在 SetAt 修改数组前，用旧值和即将写入的新值更新索引。</summary>
-        public void NotifySetAt(Map map, IntVec3 cell, ThingDef newDef, int newCount)
+        /// <summary>在 SetAt 完成后，按网格中的最终值同步索引。</summary>
+        public void NotifySetAt(Map map, IntVec3 cell)
         {
             if (!built)
                 return;
 
-            ThingDef oldDef = map.deepResourceGrid.ThingDefAt(cell);
-            int oldCount = map.deepResourceGrid.CountAt(cell);
             int index = map.cellIndices.CellToIndex(cell);
-
-            if (oldDef != null && oldCount > 0)
-                Remove(index, oldDef);
-            if (newDef != null && newCount > 0)
-                Add(index, newDef);
+            ThingDef finalDef = map.deepResourceGrid.ThingDefAt(cell);
+            int finalCount = map.deepResourceGrid.CountAt(cell);
+            SynchronizeIndex(index, finalDef, finalCount);
         }
 
         public void Invalidate()
@@ -74,6 +96,7 @@ namespace MoreBetterDeepDrill.Utils
             built = false;
             allResourceIndices.Clear();
             indicesByDef.Clear();
+            resourceDefsByIndex.Clear();
         }
 
         private void EnsureBuilt(Map map)
@@ -83,6 +106,7 @@ namespace MoreBetterDeepDrill.Utils
 
             allResourceIndices.Clear();
             indicesByDef.Clear();
+            resourceDefsByIndex.Clear();
             int numCells = map.cellIndices.NumGridCells;
             for (int i = 0; i < numCells; i++)
             {
@@ -96,6 +120,9 @@ namespace MoreBetterDeepDrill.Utils
 
         private void Add(int index, ThingDef def)
         {
+            if (resourceDefsByIndex.TryGetValue(index, out ThingDef existingDef) && existingDef != def)
+                Remove(index, existingDef);
+
             allResourceIndices.Add(index);
             if (!indicesByDef.TryGetValue(def, out var indices))
             {
@@ -103,17 +130,33 @@ namespace MoreBetterDeepDrill.Utils
                 indicesByDef.Add(def, indices);
             }
             indices.Add(index);
+            resourceDefsByIndex[index] = def;
         }
 
         private void Remove(int index, ThingDef def)
         {
             allResourceIndices.Remove(index);
+            resourceDefsByIndex.Remove(index);
             if (!indicesByDef.TryGetValue(def, out var indices))
                 return;
 
             indices.Remove(index);
             if (indices.Count == 0)
                 indicesByDef.Remove(def);
+        }
+
+        private void SynchronizeIndex(int index, ThingDef actualDef, int actualCount)
+        {
+            if (resourceDefsByIndex.TryGetValue(index, out ThingDef cachedDef)
+                && (actualDef != cachedDef || actualCount <= 0))
+            {
+                Remove(index, cachedDef);
+            }
+
+            if (actualDef != null && actualCount > 0)
+                Add(index, actualDef);
+            else
+                allResourceIndices.Remove(index);
         }
     }
 }

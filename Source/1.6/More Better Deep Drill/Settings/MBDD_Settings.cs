@@ -10,6 +10,9 @@ namespace MoreBetterDeepDrill.Settings
     /// </summary>
     public class MBDD_Settings : ModSettings
     {
+        public const int MinOreAmount = 1;
+        public const int MaxOreAmount = 100000;
+
         /// <summary>可深钻矿石列表（构建后缓存）</summary>
         public List<DrillableOre> oreDictionary = null;
         /// <summary>是否启用虫灾事件</summary>
@@ -45,6 +48,8 @@ namespace MoreBetterDeepDrill.Settings
             {
                 if (oreDict[i] == null || oreDict[i].OreDef == null)
                     oreDict.RemoveAt(i);
+                else
+                    oreDict[i].amountPerPortion = Math.Min(MaxOreAmount, Math.Max(MinOreAmount, oreDict[i].amountPerPortion));
             }
         }
     }

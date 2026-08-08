@@ -2,5 +2,6 @@
 <LanguageData>
   
   <MoreBetterDeepDrill>More Better Deep Drill</MoreBetterDeepDrill>
+  <MBDD_DeepDrill_OutputBlocked>There is not enough room near the drill for the queued output ({COUNT} x {RESOURCE}). It will be placed automatically when room becomes available; no more output will be produced until then.</MBDD_DeepDrill_OutputBlocked>
 
 </LanguageData>

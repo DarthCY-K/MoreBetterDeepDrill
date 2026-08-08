@@ -29,6 +29,7 @@
     </thingCategories>
     <placeWorkers>
       <li>PlaceWorker_PreventInteractionSpotOverlap</li>
+      <li>PlaceWorker_InvalidOverSubstructure</li>
     </placeWorkers>
     <drawPlaceWorkersWhileSelected>true</drawPlaceWorkersWhileSelected>
     <researchPrerequisites>
@@ -48,7 +49,7 @@
   <ThingDef ParentName="MBDD_DrillBase">
     <defName>MBDD_RangedDeepDrill</defName>
     <label>ranged deep drill</label>
-    <description>A large-scale deep drill that can mine all the resources on the map. Use a ground-penetrating scanner to detect the resources. This drill will yield stone chunks if no resources are present. Can be repositioned freely.</description>
+    <description>A large-scale deep drill that can mine all the resources on the map. Use a ground-penetrating scanner to detect the resources. When no deep resources remain, this drill will yield stone chunks if fallback stone is available. Can be repositioned freely.</description>
     <graphicData>
       <drawSize>(2,2)</drawSize>
     </graphicData>
@@ -86,7 +87,7 @@
   <ThingDef ParentName="MBDD_DrillBase">
     <defName>MBDD_LargeDeepDrill</defName>
     <label>large deep drill</label>
-    <description>A large version ranged deep drill, allowing up to 12 colonists to operate at meantime. Use a ground-penetrating scanner to detect the resources. This drill will yield stone chunks if no resources are present. Can be repositioned freely.</description>
+    <description>A larger ranged deep drill that allows up to 12 colonists to operate it at the same time. Use a ground-penetrating scanner to detect the resources. When no deep resources remain, this drill will yield stone chunks if fallback stone is available. Can be repositioned freely.</description>
     <graphicData>
       <drawSize>(5.5,5.5)</drawSize>
     </graphicData>
@@ -125,7 +126,7 @@
   <ThingDef ParentName="MBDD_DrillBase">
     <defName>MBDD_ArchotechDeepDrill</defName>
     <label>archotech deep drill</label>
-    <description>Deep drill created by Archotech, can drill specified resources from the void. Can be repositioned freely.</description>
+    <description>An archotech deep drill that produces a selected resource from the void. Can be repositioned freely.</description>
     <graphicData>
       <drawSize>(2,2)</drawSize>
     </graphicData>

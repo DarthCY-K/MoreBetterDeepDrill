@@ -111,7 +111,8 @@ namespace MoreBetterDeepDrill.Settings
 
                 Rect amountRect = new Rect(row.xMax - 110f, row.y + 5f, 92f, 28f);
                 string buffer = GetOreAmountBuffer(ore);
-                Widgets.TextFieldNumeric(amountRect, ref ore.amountPerPortion, ref buffer, 1, 100000);
+                Widgets.TextFieldNumeric(amountRect, ref ore.amountPerPortion, ref buffer,
+                    MBDD_Settings.MinOreAmount, MBDD_Settings.MaxOreAmount);
                 oreAmountBuffers[ore.OreDef.defName] = buffer;
                 TooltipHandler.TipRegion(row, ore.OreDef.description);
             }

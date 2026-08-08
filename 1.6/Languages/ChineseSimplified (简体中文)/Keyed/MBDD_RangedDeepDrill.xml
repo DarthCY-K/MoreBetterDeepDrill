@@ -2,14 +2,17 @@
 <LanguageData>
 
   <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>启用定向采掘</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label>
-  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>启用后可以选择指定矿物进行采掘。如果地图上不存在指定矿物，则会停止工作，直到指定矿物出现在地图上。</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>
-  <DeepDrillNoResource_SelectedOre_Null>定向采掘：当前地图上不存在目标矿物</DeepDrillNoResource_SelectedOre_Null>
+  <MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>启用后可以选择指定矿物进行采掘。如果地图上不存在指定矿物，钻机将停止工作，直到该矿物再次出现或改选其他目标。</MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc>
+  <MBDD_RangedDeepDrill_NoTargetSelected>定向采掘：尚未选择目标矿物</MBDD_RangedDeepDrill_NoTargetSelected>
 
   <MBDD_RangedDeepDrill_Gizmo_SelectOre>定向采掘...</MBDD_RangedDeepDrill_Gizmo_SelectOre>
   <MBDD_RangedDeepDrill_Gizmo_NoOre>没有可用矿石</MBDD_RangedDeepDrill_Gizmo_NoOre>
   <MBDD_RangedDeepDrill_FloatMenu_SelectOre>选择：</MBDD_RangedDeepDrill_FloatMenu_SelectOre>
-  <MBDD_RangedDeepDrill_FloatMenu_SameOre>矿石相同</MBDD_RangedDeepDrill_FloatMenu_SameOre>
+  <MBDD_RangedDeepDrill_FloatMenu_SameOre>当前已选择</MBDD_RangedDeepDrill_FloatMenu_SameOre>
 
-  <MBDD_RangedDeepDrill_TargetOreExhausted>目标矿物（{ORE}）在当前地图上已采空，钻机将停止工作，直到该矿物再次出现。</MBDD_RangedDeepDrill_TargetOreExhausted>
+  <MBDD_RangedDeepDrill_TargetOreExhausted>目标矿物（{ORE}）在当前地图上已采空，钻机将停止工作，直到该矿物再次出现或改选其他目标。</MBDD_RangedDeepDrill_TargetOreExhausted>
+  <MBDD_RangedDeepDrill_TargetOreUnavailable>当前地图上没有可开采的目标矿物（{ORE}）。</MBDD_RangedDeepDrill_TargetOreUnavailable>
+  <MBDD_RangedDeepDrill_ResourcesExhaustedFallback>深层资源已耗尽，钻机将自动继续产出{RESOURCE}。</MBDD_RangedDeepDrill_ResourcesExhaustedFallback>
+  <MBDD_RangedDeepDrill_ResourcesExhaustedNoFallback>深层资源已耗尽，且没有可供产出的基岩石块，钻机将停止工作。</MBDD_RangedDeepDrill_ResourcesExhaustedNoFallback>
 
 </LanguageData>

@@ -92,19 +92,5 @@ namespace MoreBetterDeepDrill.Utils
             }
         }
 
-        /// <summary>检查地图上是否有激活的深钻井扫描仪</summary>
-        public static bool AnyActiveDeepScannersOnMap(Map map)
-        {
-            foreach (Building item in map.listerBuildings.allBuildingsColonist)
-            {
-                CompDeepScanner compDeepScanner = item.TryGetComp<CompDeepScanner>();
-                if (compDeepScanner != null && compDeepScanner.ShouldShowDeepResourceOverlay())
-                {
-                    return true;
-                }
-            }
-
-            return false;
-        }
     }
 }

@@ -2,5 +2,6 @@
 <LanguageData>
   
   <MoreBetterDeepDrill>More Better Deep Drill</MoreBetterDeepDrill>
+  <MBDD_DeepDrill_OutputBlocked>鑽機附近沒有足夠空間放置 {COUNT} 個{RESOURCE}。積壓產物會在有空間時自動放下；在此之前，鑽機不會繼續產出。</MBDD_DeepDrill_OutputBlocked>
 
 </LanguageData>
