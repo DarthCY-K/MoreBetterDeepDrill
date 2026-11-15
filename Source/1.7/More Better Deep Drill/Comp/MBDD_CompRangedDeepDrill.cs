@@ -1,0 +1,359 @@
+using MoreBetterDeepDrill.Settings;
+using MoreBetterDeepDrill.Types;
+using MoreBetterDeepDrill.Utils;
+using RimWorld;
+using System.Collections.Generic;
+using UnityEngine;
+using Verse;
+
+namespace MoreBetterDeepDrill.Comp
+{
+    /// <summary>
+    /// 远距深钻井 Comp。继承基础钻井逻辑，增加全图资源扫描和定向采矿功能。
+    /// 通过全局 MapResourceCache 避免重复全图扫描。
+    /// </summary>
+    public class MBDD_CompRangedDeepDrill : MBDD_CompDeepDrill
+    {
+        /// <summary>用户选择的定向采矿目标</summary>
+        protected DrillableOre selectedOre;
+        /// <summary>是否启用定向采矿模式</summary>
+        protected bool targetingOreEnable;
+
+        /// <summary>SelectedOreEntry 返回值缓存。以 OreDef 引用为键，selectedOre 变更时失效</summary>
+        private DrillableOre cachedSelectedOreEntry;
+        private ThingDef cachedSelectedOreDef;
+        private List<DrillableOre> cachedOreDictionary;
+
+        /// <summary>
+        /// 获取 selectedOre 在 oreDictionary 中的当前条目。
+        /// 使用 OreDef 引用缓存，避免每帧遍历 oreDictionary 列表。
+        /// 仅在 selectedOre 变更或首次访问时 O(n) 搜索一次。
+        /// </summary>
+        private DrillableOre SelectedOreEntry
+        {
+            get
+            {
+                var currentDef = selectedOre?.OreDef;
+                var oreDictionary = StaticValues.ModSetting?.oreDictionary;
+                if (currentDef == cachedSelectedOreDef && ReferenceEquals(oreDictionary, cachedOreDictionary))
+                    return cachedSelectedOreEntry;
+
+                cachedSelectedOreDef = currentDef;
+                cachedOreDictionary = oreDictionary;
+                if (currentDef == null)
+                    return cachedSelectedOreEntry = null;
+
+                if (oreDictionary != null)
+                {
+                    for (int i = 0; i < oreDictionary.Count; i++)
+                    {
+                        if (oreDictionary[i]?.OreDef == currentDef)
+                            return cachedSelectedOreEntry = oreDictionary[i];
+                    }
+                }
+
+                return cachedSelectedOreEntry = selectedOre;
+            }
+        }
+
+        /// <summary>存档：额外持久化定向采矿状态</summary>
+        public override void PostExposeData()
+        {
+            base.PostExposeData();
+            Scribe_Values.Look(ref targetingOreEnable, "targetingOreEnable");
+            Scribe_Deep.Look(ref selectedOre, "selectedOre");
+        }
+
+        /// <summary>
+        /// 产出矿物。定向模式下先查找指定资源，非定向模式扫描任意资源。
+        /// 定向资源枯竭时停止工作；非定向模式自动回退到基岩石块。
+        /// </summary>
+        protected override bool TryProducePortion(float yieldPct, Pawn driller = null)
+        {
+            ThingDef resDef;
+            int countPresent;
+            IntVec3 cell;
+            bool nextResource = false;
+
+            if (targetingOreEnable)
+            {
+                if (SelectedOreEntry == null)
+                {
+                    UpdateCanDrillState();
+                    return false;
+                }
+
+                nextResource = GetNextResource(out resDef, out countPresent, out cell);
+                if (!nextResource)
+                {
+                    UpdateCanDrillState();
+                    return false;
+                }
+            }
+            else
+            {
+                nextResource = GetNextResource(out resDef, out countPresent, out cell);
+            }
+
+            if (resDef == null)
+            {
+                UpdateCanDrillState();
+                return false;
+            }
+
+            int num = Mathf.Min(countPresent, GetPortionAmount(resDef));
+            if (num <= 0)
+                return false;
+
+            int stackCount = Mathf.Max(1, GenMath.RoundRandom(num * yieldPct));
+            if (!QueueOutput(resDef, stackCount))
+                return false;
+
+            if (nextResource)
+                parent.Map.deepResourceGrid.SetAt(cell, resDef, countPresent - num);
+
+            if (driller != null)
+                Find.HistoryEventsManager.RecordEvent(new HistoryEvent(HistoryEventDefOf.Mined, driller.Named(HistoryEventArgsNames.Doer)));
+
+            if (!nextResource)
+                return true;
+
+            bool resourceTypeStillPresent = ResourcePresent(resDef);
+            if (!resourceTypeStillPresent)
+                SynchronizeTargetOreExhausted(resDef, targetingOreEnable ? this : null);
+
+            if (targetingOreEnable)
+            {
+                if (resourceTypeStillPresent)
+                    UpdateCanDrillState(false);
+                return true;
+            }
+
+            if (ValuableResourcesPresent())
+                return true;
+
+            ThingDef baseResource = DeepDrillUtility.GetBaseResource(parent.Map, parent.Position);
+            if (baseResource == null)
+            {
+                Messages.Message("MBDD_RangedDeepDrill_ResourcesExhaustedNoFallback".Translate(), parent, MessageTypeDefOf.TaskCompletion);
+            }
+            else
+            {
+                Messages.Message("MBDD_RangedDeepDrill_ResourcesExhaustedFallback".Translate(baseResource.Named("RESOURCE")), parent, MessageTypeDefOf.TaskCompletion);
+            }
+
+            UpdateCanDrillState();
+            return true;
+        }
+
+        /// <summary>
+        /// 每 300 tick 更新钻机可工作状态。
+        /// 有电 + (有基岩资源 或 定向模式找到目标资源) = 可工作
+        /// 定向模式下目标资源耗尽（可工作 -> 不可工作）时给玩家一次提示
+        /// </summary>
+        protected override void UpdateCanDrillState()
+        {
+            UpdateCanDrillState(true);
+        }
+
+        private void UpdateCanDrillState(bool notifyTargetExhausted)
+        {
+            bool resourceWasAvailable = ResourceAvailable;
+            bool powered = powerComp == null || powerComp.PowerOn;
+            bool resourceAvailableNow = CalculateResourceAvailability();
+
+            if (notifyTargetExhausted && resourceWasAvailable && !resourceAvailableNow && powered
+                && targetingOreEnable && SelectedOreEntry != null)
+            {
+                SynchronizeTargetOreExhausted(SelectedOreEntry.OreDef, this);
+                return;
+            }
+
+            CanDrillNow = resourceAvailableNow;
+        }
+
+        private bool CalculateResourceAvailability()
+        {
+            if (targetingOreEnable)
+                return ValuableResourcesPresent();
+            return Utils.DeepDrillUtil.GetBaseResource(parent.Map, parent.Position) != null || ValuableResourcesPresent();
+        }
+
+        private bool ResourcePresent(ThingDef resourceDef)
+        {
+            return resourceDef != null && Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map,
+                out _, out _, out _, resourceDef);
+        }
+
+        private void SynchronizeTargetOreExhausted(ThingDef exhaustedDef, MBDD_CompRangedDeepDrill preferredMessageSource)
+        {
+            MBDD_CompRangedDeepDrill messageSource = null;
+            if (preferredMessageSource != null)
+            {
+                bool wasAvailable = preferredMessageSource.ResourceAvailable;
+                preferredMessageSource.UpdateCanDrillState(false);
+                if (wasAvailable && !preferredMessageSource.ResourceAvailable
+                    && (preferredMessageSource.powerComp == null || preferredMessageSource.powerComp.PowerOn))
+                {
+                    messageSource = preferredMessageSource;
+                }
+            }
+
+            List<Building> buildings = parent.Map.listerBuildings.allBuildingsColonist;
+            for (int i = 0; i < buildings.Count; i++)
+            {
+                MBDD_CompRangedDeepDrill comp = buildings[i].GetComp<MBDD_CompRangedDeepDrill>();
+                if (comp != null && comp != preferredMessageSource && comp.targetingOreEnable
+                    && comp.SelectedOreEntry?.OreDef == exhaustedDef)
+                {
+                    bool wasAvailable = comp.ResourceAvailable;
+                    comp.UpdateCanDrillState(false);
+                    if (messageSource == null && wasAvailable && !comp.ResourceAvailable
+                        && (comp.powerComp == null || comp.powerComp.PowerOn))
+                    {
+                        messageSource = comp;
+                    }
+                }
+            }
+
+            if (messageSource != null)
+            {
+                Messages.Message("MBDD_RangedDeepDrill_TargetOreExhausted".Translate(exhaustedDef.Named("ORE")),
+                    messageSource.parent, MessageTypeDefOf.TaskCompletion);
+            }
+        }
+
+        /// <summary>检查全图是否还有可开采资源</summary>
+        public bool ValuableResourcesPresent()
+        {
+            return GetNextResource(out _, out _, out _);
+        }
+
+        /// <summary>Gizmo：定向采矿开关 + 矿石选择菜单</summary>
+        public override IEnumerable<Gizmo> CompGetGizmosExtra()
+        {
+            foreach (Gizmo item in base.CompGetGizmosExtra())
+            {
+                yield return item;
+            }
+
+            yield return new Command_Toggle
+            {
+                defaultLabel = "MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Label".Translate(),
+                defaultDesc = "MBDD_RangedDeepDrill_CommandToggle_EnableOreTargeting_Desc".Translate(),
+                icon = ContentFinder<Texture2D>.Get("UI/Commands/EnableOreTargetingToggle"),
+                isActive = () => targetingOreEnable,
+                toggleAction = delegate
+                {
+                    targetingOreEnable = !targetingOreEnable;
+                    cachedSelectedOreDef = null;
+                    UpdateCanDrillState(false);
+                }
+            };
+
+            if (targetingOreEnable)
+            {
+                DrillableOre currentSelectedOre = SelectedOreEntry;
+                Command_Action action_selectOre = new Command_Action();
+                action_selectOre.defaultLabel = "MBDD_RangedDeepDrill_Gizmo_SelectOre".Translate();
+                action_selectOre.icon = currentSelectedOre?.OreDef?.uiIcon ?? ThingDefOf.DeepDrill.uiIcon;
+                action_selectOre.Disabled = StaticValues.ModSetting.oreDictionary == null || StaticValues.ModSetting.oreDictionary.Count <= 0;
+                action_selectOre.disabledReason = "MBDD_RangedDeepDrill_Gizmo_NoOre".Translate();
+                action_selectOre.action = delegate
+                {
+                    List<FloatMenuOption> list = new List<FloatMenuOption>();
+                    using (IEnumerator<DrillableOre> enumerator = MBDD_Mod.ModSetting.oreDictionary.GetEnumerator())
+                    {
+                        while (enumerator.MoveNext())
+                        {
+                            DrillableOre ore = enumerator.Current;
+                            bool isCurrent = currentSelectedOre?.OreDef == ore.OreDef;
+                            string label = "MBDD_RangedDeepDrill_FloatMenu_SelectOre".Translate() + ore.OreDef.LabelCap;
+                            if (isCurrent)
+                                label += " (" + "MBDD_RangedDeepDrill_FloatMenu_SameOre".Translate() + ")";
+                            FloatMenuOption floatMenu_selectOre = new FloatMenuOption(label, isCurrent ? null : (System.Action)(() =>
+                            {
+                                selectedOre = ore;
+                                cachedSelectedOreDef = null;
+                                UpdateCanDrillState(false);
+                            }));
+                            list.Add(floatMenu_selectOre);
+                        }
+                    }
+
+                    if (list.Count != 0)
+                    {
+                        FloatMenu window = new FloatMenu(list);
+                        Find.WindowStack.Add(window);
+                    }
+                };
+
+                yield return action_selectOre;
+            }
+        }
+
+        /// <summary>检视面板信息：显示当前资源类型、进度百分比等</summary>
+        public override string CompInspectStringExtra()
+        {
+            if (!parent.Spawned)
+                return null;
+
+            DrillableOre currentSelectedOre = SelectedOreEntry;
+            if (targetingOreEnable && currentSelectedOre == null)
+                return "MBDD_RangedDeepDrill_NoTargetSelected".Translate();
+
+            GetNextResource(out ThingDef resDef, out _, out _);
+            if (resDef == null)
+            {
+                if (targetingOreEnable && currentSelectedOre != null)
+                    return "MBDD_RangedDeepDrill_TargetOreUnavailable".Translate(currentSelectedOre.OreDef.Named("ORE"));
+                return "DeepDrillNoResources".Translate();
+            }
+
+            if (DebugSettings.ShowDevGizmos)
+            {
+                return "ResourceBelow".Translate() + ": " + resDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0") + $"\nPortionYieldPct: {PortionYieldPct}\nDrillPower: {DrillPower} (Raw: {drillPower}, Max: {maxDrillPower})";
+            }
+
+            return "ResourceBelow".Translate() + ": " + resDef.LabelCap + "\n" + "ProgressToNextPortion".Translate() + ": " + ProgressToNextPortionPercent.ToStringPercent("F0");
+        }
+
+        /// <summary>
+        /// 查找下一个可开采资源。定向模式传入 targetOreDef 精确匹配。
+        /// 使用全局 MapResourceCache 查询。
+        /// </summary>
+        private bool GetNextResource(out ThingDef resDef, out int countPresent, out IntVec3 cell)
+        {
+            ThingDef targetOreDef = targetingOreEnable ? SelectedOreEntry?.OreDef : null;
+            if (targetingOreEnable && targetOreDef == null)
+            {
+                resDef = null;
+                countPresent = int.MaxValue;
+                cell = parent.Position;
+                return false;
+            }
+
+            return targetOreDef != null
+                ? Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell, targetOreDef)
+                : Utils.DeepDrillUtil.GetNextResource(parent.Position, parent.Map, out resDef, out countPresent, out cell);
+        }
+
+        /// <summary>
+        /// 获取指定资源每次产出的数量。优先使用玩家在设置中配置的产量
+        /// （与超凡钻机行为一致），未配置时回退到 def 的 deepCountPerPortion。
+        /// </summary>
+        private static int GetPortionAmount(ThingDef resDef)
+        {
+            var oreDictionary = StaticValues.ModSetting?.oreDictionary;
+            if (oreDictionary != null)
+            {
+                for (int i = 0; i < oreDictionary.Count; i++)
+                {
+                    if (oreDictionary[i]?.OreDef == resDef)
+                        return Mathf.Max(MBDD_Settings.MinOreAmount, oreDictionary[i].amountPerPortion);
+                }
+            }
+            return Mathf.Max(MBDD_Settings.MinOreAmount, resDef.deepCountPerPortion);
+        }
+    }
+}

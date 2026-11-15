@@ -10,4 +10,8 @@
 		<li>1.6</li>
 		<!-- <li IfModActive="spdskatr.projectrimfactory">Extension/1.6/ProjectRimFactoryRevived</li> -->
     </v1.6>
+	<v1.7>
+		<li>Cont</li>
+		<li>1.7</li>
+    </v1.7>
 </loadFolders>

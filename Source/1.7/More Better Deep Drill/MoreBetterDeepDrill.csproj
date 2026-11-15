@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <GenerateAssemblyInfo>false</GenerateAssemblyInfo>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>7.3</LangVersion>
+    <AssemblyName>MoreBetterDeepDrill</AssemblyName>
+    <RootNamespace>MoreBetterDeepDrill</RootNamespace>
+    <DebugType>none</DebugType>
+    <RimWorldDir Condition="'$(RimWorldDir)' == ''">$(MSBuildProjectDirectory)\..\..\..\..\..</RimWorldDir>
+    <RimWorldManagedDir Condition="'$(RimWorldManagedDir)' == ''">$(RimWorldDir)</RimWorldManagedDir>
+    <HarmonyAssembliesDir Condition="'$(HarmonyAssembliesDir)' == ''">$(RimWorldDir)\..\..\workshop\content\294100\2009463077\1.7\Assemblies</HarmonyAssembliesDir>
+    <PackageAssembliesDir Condition="'$(PackageAssembliesDir)' == ''">$(MSBuildProjectDirectory)\..\..\..\1.7\Assemblies</PackageAssembliesDir>
+    <DeployToPackage Condition="'$(DeployToPackage)' == ''">true</DeployToPackage>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Assembly-CSharp">
+      <HintPath>$(RimWorldManagedDir)\Assembly-CSharp.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="UnityStubs">
+      <HintPath>$(RimWorldManagedDir)\UnityStubs.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+    <Reference Include="0Harmony">
+      <HintPath>$(HarmonyAssembliesDir)\0Harmony.dll</HintPath>
+      <Private>false</Private>
+    </Reference>
+  </ItemGroup>
+  <Target Name="ValidateGameReferences" BeforeTargets="BeforeRebuild;ResolveReferences">
+    <Error Condition="!Exists('$(RimWorldManagedDir)\Assembly-CSharp.dll')" Text="RimWorld 1.7 assemblies were not found under '$(RimWorldManagedDir)'. Set /p:RimWorldDir=... or /p:RimWorldManagedDir=... ." />
+    <GetAssemblyIdentity AssemblyFiles="$(RimWorldManagedDir)\Assembly-CSharp.dll" Condition="Exists('$(RimWorldManagedDir)\Assembly-CSharp.dll')">
+      <Output TaskParameter="Assemblies" ItemName="_RimWorldAssemblyIdentity" />
+    </GetAssemblyIdentity>
+    <PropertyGroup>
+      <RimWorldAssemblyVersion>@(_RimWorldAssemblyIdentity->'%(Version)')</RimWorldAssemblyVersion>
+    </PropertyGroup>
+    <Error Condition="'$(RimWorldAssemblyVersion)' != '' And ('$(RimWorldAssemblyVersion)' &lt; '1.7.0.0' Or '$(RimWorldAssemblyVersion)' &gt;= '1.8.0.0')" Text="Assembly-CSharp.dll version '$(RimWorldAssemblyVersion)' is not RimWorld 1.7." />
+    <Error Condition="!Exists('$(RimWorldManagedDir)\UnityStubs.dll')" Text="UnityStubs.dll is missing under '$(RimWorldManagedDir)'." />
+    <Error Condition="!Exists('$(HarmonyAssembliesDir)\0Harmony.dll')" Text="Harmony 1.7 was not found under '$(HarmonyAssembliesDir)'. Set /p:HarmonyAssembliesDir=... ." />
+  </Target>
+  <Target Name="DeployCoreAssembly" AfterTargets="Build" Condition="'$(DeployToPackage)' == 'true'">
+    <MakeDir Directories="$(PackageAssembliesDir)" />
+    <Copy SourceFiles="$(TargetPath)" DestinationFiles="$(PackageAssembliesDir)\$(TargetFileName)" SkipUnchangedFiles="true" />
+  </Target>
+</Project>
