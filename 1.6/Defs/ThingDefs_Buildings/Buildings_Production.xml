@@ -29,7 +29,6 @@
     </thingCategories>
     <placeWorkers>
       <li>PlaceWorker_PreventInteractionSpotOverlap</li>
-      <li>PlaceWorker_InvalidOverSubstructure</li>
     </placeWorkers>
     <drawPlaceWorkersWhileSelected>true</drawPlaceWorkersWhileSelected>
     <researchPrerequisites>
