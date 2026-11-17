@@ -2,6 +2,10 @@
 
 Adds ranged, large multi-operator, and archotech deep drills to RimWorld 1.5, 1.6, and 1.7.
 
+## Workshop upload
+
+Run `powershell -NoProfile -ExecutionPolicy Bypass -File .\scripts\Prepare-WorkshopUpload.ps1` to export a clean runtime package and a SteamCMD upload configuration. See [上传说明](docs/workshop-upload.md). The script prepares files locally; uploading is a separate command.
+
 ## Build the 1.7 core assembly
 
 Requirements:
